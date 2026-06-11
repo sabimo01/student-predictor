@@ -137,7 +137,8 @@ tab1, tab2, tab3 = st.tabs(["📊 Exploratory Data Analysis (EDA)", "🔮 Predic
 # SCHEDA 1: EXPLORATORY DATA ANALYSIS (EDA)
 # ------------------------------------------
 with tab1:
-    st.header("Analisi Esplorativa dei Dati (EDA)")
+    # Al posto di: st.header("Analisi Esplorativa dei Dati (EDA)")
+st.markdown("<h2 style='font-size: 22px; font-weight: bold; margin-top: 0px; margin-bottom: 15px;'>Analisi Esplorativa dei Dati (EDA)</h2>", unsafe_allow_html=True)
     
     # Sotto-sezione: Data Profiling con font ridotto a 1.25rem e allineamento perfetto
     st.markdown("<p style='font-size: 14px; font-weight: bold; margin-bottom: 10px;'>Data Profiling</p>", unsafe_allow_html=True)
