@@ -128,6 +128,7 @@ def train_models(X_t, X_v, y_t, y_v):
 
 modello_rf, modello_lr, rmse_rf, rmse_lr = train_models(X_train, X_test, y_train, y_test)
 
+
 # ==========================================
 # 4. CREAZIONE STRUTTURA A SCHEDE (TABS)
 # ==========================================
@@ -137,10 +138,7 @@ tab1, tab2, tab3 = st.tabs(["📊 Exploratory Data Analysis (EDA)", "🔮 Predic
 # SCHEDA 1: EXPLORATORY DATA ANALYSIS (EDA)
 # ------------------------------------------
 with tab1:
-    # Titolo principale rimpicciolito ed elegante
     st.markdown("<h2 style='font-size: 22px; font-weight: bold; margin-top: 0px; margin-bottom: 15px;'>Analisi Esplorativa dei Dati (EDA)</h2>", unsafe_allow_html=True)
-    
-    # Sotto-sezione: Data Profiling (In grassetto, 16px)
     st.markdown("<p style='font-size: 16px; font-weight: bold; margin-bottom: 10px;'>Data Profiling</p>", unsafe_allow_html=True)
     
     col_prof1, col_prof2, col_prof3 = st.columns(3)
@@ -156,7 +154,6 @@ with tab1:
     
     col_graf1, col_graf2 = st.columns(2)
     with col_graf1:
-        # Allineamento e sintassi ripristinati correttamente
         st.markdown("<p style='font-size: 16px; font-weight: bold; margin-bottom: 10px;'>Heatmap delle Correlazioni Interattiva</p>", unsafe_allow_html=True)
         corr_matrix = df_elaborato.select_dtypes(include=[np.number]).corr()
         
@@ -179,7 +176,6 @@ with tab1:
 # SCHEDA 2: PREDICTOR DASHBOARD
 # ------------------------------------------
 with tab2:
-    # Titolo principale rimpicciolito ed elegante
     st.markdown("<h2 style='font-size: 22px; font-weight: bold; margin-top: 0px; margin-bottom: 15px;'>Simulatore d'Impatto in Tempo Reale</h2>", unsafe_allow_html=True)
     
     with st.container(border=True):
@@ -242,5 +238,25 @@ with tab2:
 # SCHEDA 3: PERFORMANCE MODELLI
 # ------------------------------------------
 with tab3:
-    # Titolo principale rimpicciolito ed elegante
-    st.markdown("<h2 style='font-size: 22px; font-
+    st.markdown("<h2 style='font-size: 22px; font-weight: bold; margin-top: 0px; margin-bottom: 15px;'>Validazione e Confronto Algoritmi</h2>", unsafe_allow_html=True)
+    
+    col_mod1, col_mod2 = st.columns(2)
+    with col_mod1:
+        with st.container(border=True):
+            st.markdown("### 🌲 Approccio 1: Random Forest")
+            st.metric(label="Errore Medio (RMSE)", value=f"{rmse_rf:.4f}")
+    with col_mod2:
+        with st.container(border=True):
+            st.markdown("### 📈 Approccio 2: Regressione Lineare")
+            st.metric(label="Errore Medio (RMSE)", value=f"{rmse_lr:.4f}")
+            
+    st.markdown("---")
+    differenza_calcolata = abs(rmse_lr - rmse_rf)
+    if rmse_rf < rmse_lr:
+        st.info(f"Il modello **Random Forest** registra un errore RMSE inferiore di **{differenza_calcolata:.4f}** punti.")
+    else:
+        st.info("L'algoritmo **Regressione Lineare** risulta più performante o equivalente.")
+
+st.markdown("<br><br>", unsafe_allow_html=True)
+with st.expander("📊 Ispeziona un'anteprima dei dati storici"):
+    st.dataframe(df_originale.head(10), use_container_width=True)
