@@ -139,7 +139,7 @@ tab1, tab2, tab3 = st.tabs(["📊 Exploratory Data Analysis (EDA)", "🔮 Predic
 with tab1:
     st.header("Analisi Esplorativa dei Dati (EDA)")
     
-    st.subheader("• Data Profiling")
+    st.subheader("Data Profiling")
     col_prof1, col_prof2, col_prof3 = st.columns(3)
     with col_prof1:
         st.metric("Numero Totale di Righe", df_originale.shape[0])
@@ -153,7 +153,7 @@ with tab1:
     
     col_graf1, col_graf2 = st.columns(2)
     with col_graf1:
-        st.subheader("• Heatmap delle Correlazioni Interattiva")
+        st.subheader("Heatmap delle Correlazioni Interattiva")
         corr_matrix = df_elaborato.select_dtypes(include=[np.number]).corr()
         
         fig_heat = px.imshow(
@@ -167,7 +167,7 @@ with tab1:
         st.plotly_chart(fig_heat, use_container_width=True)
         
     with col_graf2:
-        st.subheader("• Distribuzione della Variabile Target")
+        st.subheader("Distribuzione della Variabile Target")
         fig_dist = px.histogram(df_originale, x=target_col, color_discrete_sequence=['#1572B6'])
         fig_dist.update_layout(title_text=f"Distribuzione dei Punteggi: {target_col}", title_x=0.5, xaxis_title="Punteggio d'Esame", yaxis_title="Conteggio Studenti")
         st.plotly_chart(fig_dist, use_container_width=True)
@@ -259,3 +259,4 @@ with tab3:
 st.markdown("<br><br>", unsafe_allow_html=True)
 with st.expander("📊 Ispeziona un'anteprima dei dati storici"):
     st.dataframe(df_originale.head(10), use_container_width=True)
+
