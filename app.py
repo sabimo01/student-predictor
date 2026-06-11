@@ -139,7 +139,8 @@ tab1, tab2, tab3 = st.tabs(["📊 Exploratory Data Analysis (EDA)", "🔮 Predic
 with tab1:
     st.header("Analisi Esplorativa dei Dati (EDA)")
     
-    st.subheader("Data Profiling")
+    # Al posto di: st.subheader("Data Profiling")
+st.markdown("<h3 style='font-size: 1.25rem; margin-bottom: 10px;'>Data Profiling</h3>", unsafe_allow_html=True)
     col_prof1, col_prof2, col_prof3 = st.columns(3)
     with col_prof1:
         st.metric("Numero Totale di Righe", df_originale.shape[0])
