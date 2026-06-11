@@ -140,7 +140,7 @@ with tab1:
     st.header("Analisi Esplorativa dei Dati (EDA)")
     
     # Sotto-sezione: Data Profiling con font ridotto a 1.25rem e allineamento perfetto
-    st.markdown("<h3 style='font-size: 1.25rem; margin-bottom: 10px;'>Data Profiling</h3>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size: 14px; font-weight: bold; margin-bottom: 10px;'>Data Profiling</p>", unsafe_allow_html=True)
     
     col_prof1, col_prof2, col_prof3 = st.columns(3)
     with col_prof1:
