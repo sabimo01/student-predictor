@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import plotly.express as px  # <-- La nuova super libreria grafica!
+import plotly.express as px  
 import plotly.graph_objects as go
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
@@ -12,41 +12,42 @@ import os
 # ==========================================
 # 1. AUTENTICAZIONE E AUTORIZZAZIONE
 # ==========================================
-def login():
-    st.markdown("""
-        <div style="text-align: center; margin-top: 50px;">
-            <h2>🔒 Accesso Piattaforma Student Predictor</h2>
-            <p>Inserisci le credenziali autorizzate per accedere al sistema e alla Knowledge Base.</p>
-        </div>
-    """, unsafe_allow_html=True)
-    
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        with st.form("Login Form"):
-            username = st.text_input("Username")
-            password = st.text_input("Password", type="password")
-            submit = st.form_submit_button("Accedi")
-            
-            if submit:
-                if username == "admin" and password == "ia2026":
-                    st.session_state["authenticated"] = True
-                    st.success("Accesso eseguito con successo!")
-                    st.rerun()
-                else:
-                    st.error("Credenziali non corrette o non autorizzate.")
-
+# Inizializziamo lo stato di autenticazione se non esiste
 if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
 
+# Se l'utente non è autenticato, mostriamo solo la schermata di login
 if not st.session_state["authenticated"]:
-    login()
-    st.stop()
+    st.set_page_config(page_title="🔒 Login - Student Predictor AI", layout="centered")
+    
+    st.markdown("""
+        <div style="text-align: center; margin-top: 50px; background-color: #f0f2f6; padding: 25px; border-radius: 10px; border: 1px solid #e0e0e0;">
+            <h2 style="margin: 0; color: #1572B6;">🔒 Accesso Riservato Piattaforma</h2>
+            <p style="color: #555; margin: 10px 0 0 0;">Inserisci le credenziali autorizzate per sbloccare la dashboard e la Knowledge Base.</p>
+        </div>
+        <br>
+    """, unsafe_allow_html=True)
+    
+    with st.form("Login Form"):
+        username = st.text_input("Username Autorizzato")
+        password = st.text_input("Password di Sicurezza", type="password")
+        submit = st.form_submit_button("SBLOCCA DASHBOARD 🚀", use_container_width=True)
+        
+        if submit:
+            if username == "admin" and password == "ia2026":
+                st.session_state["authenticated"] = True
+                st.success("Accesso eseguito! Caricamento in corso...")
+                st.rerun()
+            else:
+                st.error("Credenziali non corrette o utente non autorizzato.")
+    st.stop()  # Blocca l'esecuzione qui finché non si effettua il login
 
 # ==========================================
-# 2. CONFIGURAZIONE PAGINA E INTERFACCIA
+# 2. CONFIGURAZIONE PAGINA E INTERFACCIA (POST-LOGIN)
 # ==========================================
 st.set_page_config(page_title="Student Predictor AI - Piattaforma Pro", layout="wide")
 
+# Header istituzionale
 col_logo, col_titolo = st.columns([1, 5])
 with col_logo:
     if os.path.exists("logo.png"):
@@ -127,7 +128,7 @@ modello_rf, modello_lr, rmse_rf, rmse_lr = train_models(X_train, X_test, y_train
 tab1, tab2, tab3 = st.tabs(["📊 Exploratory Data Analysis (EDA)", "🔮 Predictor Dashboard", "📈 Performance Modelli"])
 
 # ------------------------------------------
-# SCHEDA 1: EXPLORATORY DATA ANALYSIS (EDA) - VERSIONE INTERATTIVA PLOTLY
+# SCHEDA 1: EDA
 # ------------------------------------------
 with tab1:
     st.header("Analisi Esplorativa dei Dati (EDA)")
@@ -148,33 +149,14 @@ with tab1:
     with col_graf1:
         st.subheader("• Heatmap delle Correlazioni Interattiva")
         corr_matrix = df_elaborato.select_dtypes(include=[np.number]).corr()
-        
-        # Heatmap ultra-moderna con Plotly
-        fig_heat = px.imshow(
-            corr_matrix, 
-            text_auto='.2f', 
-            color_continuous_scale='RdBu_r',
-            aspect="auto"
-        )
-        fig_heat.update_layout(title_text='Matrice di Correlazione Organica (Passaci sopra il mouse!)', title_x=0.5)
+        fig_heat = px.imshow(corr_matrix, text_auto='.2f', color_continuous_scale='RdBu_r', aspect="auto")
+        fig_heat.update_layout(title_text='Matrice di Correlazione Organica (Passaci sopra col mouse!)', title_x=0.5)
         st.plotly_chart(fig_heat, use_container_width=True)
         
     with col_graf2:
         st.subheader("• Distribuzione della Variabile Target")
-        
-        # Istogramma interattivo con Plotly
-        fig_dist = px.histogram(
-            df_originale, 
-            x=target_col, 
-            kde=True, 
-            color_discrete_sequence=['#1572B6']
-        )
-        fig_dist.update_layout(
-            title_text=f"Distribuzione dei Punteggi: {target_col}",
-            title_x=0.5,
-            xaxis_title="Punteggio d'Esame",
-            yaxis_title="Conteggio Studenti"
-        )
+        fig_dist = px.histogram(df_originale, x=target_col, color_discrete_sequence=['#1572B6'])
+        fig_dist.update_layout(title_text=f"Distribuzione dei Punteggi: {target_col}", title_x=0.5, xaxis_title="Punteggio d'Esame", yaxis_title="Conteggio Studenti")
         st.plotly_chart(fig_dist, use_container_width=True)
 
 # ------------------------------------------
@@ -185,7 +167,6 @@ with tab2:
     
     with st.container(border=True):
         st.subheader("📝 Input Form: Profilo Studente Ipotetico")
-        
         c1, c2, c3, c4 = st.columns(4)
         with c1:
             in_eta = st.number_input("Età Anagrafica", min_value=15, max_value=90, value=20)
@@ -206,7 +187,6 @@ with tab2:
             'class_attendance': in_presenza, 'sleep_hours': in_ore_sonno, 'sleep_quality': in_qualita_sonno,
             'study_method': in_metodo, 'Carico_Totale_Ore': in_ore_studio + in_ore_sonno
         }
-        
         input_user_df = pd.DataFrame([dati_simulati])
         
         for col in input_user_df.columns:
@@ -224,36 +204,21 @@ with tab2:
         with col_res:
             st.markdown("### 🎯 Verdetto Predittivo")
             st.metric(label="Voto Finale Stimato", value=f"{voto_predetto:.2f} / 100")
-            
             if voto_predetto >= 70:
-                st.success("Rendimento Elevato: Le abitudini impostate generano una proiezione accademica eccellente.")
+                st.success("Rendimento Elevato: Ottima proiezione accademica.")
             elif voto_predetto >= 50:
-                st.warning("Rendimento Medio: Margini di miglioramento stabili bilanciando riposo e presenza.")
+                st.warning("Rendimento Medio: Margini di miglioramento stabili.")
             else:
-                st.error("Rendimento Critico: Il sistema consiglia di incrementare la presenza e le ore di studio strutturato.")
+                st.error("Rendimento Critico: Si consiglia di rivedere la pianificazione delle ore.")
                 
         with col_feat:
             st.markdown("### 📊 Feature Importance (I 3 fattori principali)")
             importanze = modello_rf.feature_importances_
-            nomi_features = X.columns
+            df_features = pd.DataFrame({'Fattore': X.columns, 'Importanza': importanze})
+            top_3 = df_features.sort_values(by='Importanza', ascending=True).head(3)
             
-            df_features = pd.DataFrame({'Fattore': nomi_features, 'Importanza': importanze})
-            top_3 = df_features.sort_values(by='Importanza', ascending=True).head(3) # Ascending true per visualizzazione orizzontale corretta
-            
-            # Grafico a barre orizzontale moderno con Plotly
-            fig_bar = px.bar(
-                top_3, 
-                x='Importanza', 
-                y='Fattore', 
-                orientation='h',
-                color='Importanza',
-                color_continuous_scale='Viridis'
-            )
-            fig_bar.update_layout(
-                title_text="I 3 fattori chiave che influenzano di più il voto finale",
-                title_x=0.5,
-                showlegend=False
-            )
+            fig_bar = px.bar(top_3, x='Importanza', y='Fattore', orientation='h', color='Importanza', color_continuous_scale='Viridis')
+            fig_bar.update_layout(title_text="I 3 fattori chiave che influenzano di più il voto finale", title_x=0.5, showlegend=False)
             st.plotly_chart(fig_bar, use_container_width=True)
 
 # ------------------------------------------
@@ -261,34 +226,23 @@ with tab2:
 # ------------------------------------------
 with tab3:
     st.header("Validazione e Confronto Algoritmi")
-    st.write("Misurazione dell'errore quadratico medio dei modelli matematici per decretare la precisione dell'architettura.")
-    
     col_mod1, col_mod2 = st.columns(2)
     with col_mod1:
         with st.container(border=True):
-            st.markdown("### 🌲 Approccio 1: Random Forest Regressor")
-            st.write("Algoritmo non lineare basato su ensemble di alberi decisionali.")
+            st.markdown("### 🌲 Approccio 1: Random Forest")
             st.metric(label="Errore Medio (RMSE)", value=f"{rmse_rf:.4f}")
-            st.caption("Un valore di RMSE più basso indica predizioni più accurate e vicine al dato reale.")
-            
     with col_mod2:
         with st.container(border=True):
             st.markdown("### 📈 Approccio 2: Regressione Lineare")
-            st.write("Modello matematico statistico lineare standard.")
             st.metric(label="Errore Medio (RMSE)", value=f"{rmse_lr:.4f}")
-            st.caption("Punto di riferimento classico per stimare i trend quantitativi continui.")
             
     st.markdown("---")
-    st.subheader("💡 Verdetto del Team di Data Science")
-    
     differenza_calcolata = abs(rmse_lr - rmse_rf)
-    
     if rmse_rf < rmse_lr:
-        st.info(f"L'algoritmo **Random Forest** è stato scelto come motore principale poiché registra un errore RMSE inferior di **{differenza_calcolata:.4f}** punti rispetto alla Regressione Lineare.")
+        st.info(f"Il modello **Random Forest** registra un errore RMSE inferiore di **{differenza_calcolata:.4f}** punti.")
     else:
-        st.info("L'algoritmo **Regressione Lineare** risulta più performante o equivalente in questo specifico sotto-insieme di dati.")
+        st.info("L'algoritmo **Regressione Lineare** risulta più performante o equivalente.")
 
-# Anteprima Dati Storici di Knowledge Base
 st.markdown("<br><br>", unsafe_allow_html=True)
-with st.expander("📊 Ispeziona un'anteprima dei dati storici d'allenamento (Knowledge Base)"):
+with st.expander("📊 Ispeziona un'anteprima dei dati storici"):
     st.dataframe(df_originale.head(10), use_container_width=True)
