@@ -127,7 +127,6 @@ def train_models(X_t, X_v, y_t, y_v):
     return rf, lr, rmse_rf, rmse_lr
 
 modello_rf, modello_lr, rmse_rf, rmse_lr = train_models(X_train, X_test, y_train, y_test)
-
 # ==========================================
 # 4. CREAZIONE STRUTTURA A SCHEDE (TABS)
 # ==========================================
@@ -137,10 +136,10 @@ tab1, tab2, tab3 = st.tabs(["📊 Exploratory Data Analysis (EDA)", "🔮 Predic
 # SCHEDA 1: EXPLORATORY DATA ANALYSIS (EDA)
 # ------------------------------------------
 with tab1:
-    # Al posto di: st.header("Analisi Esplorativa dei Dati (EDA)")
-st.markdown("<h2 style='font-size: 22px; font-weight: bold; margin-top: 0px; margin-bottom: 15px;'>Analisi Esplorativa dei Dati (EDA)</h2>", unsafe_allow_html=True)
+    # Titolo principale rimpicciolito ed elegante
+    st.markdown("<h2 style='font-size: 22px; font-weight: bold; margin-top: 0px; margin-bottom: 15px;'>Analisi Esplorativa dei Dati (EDA)</h2>", unsafe_allow_html=True)
     
-    # Sotto-sezione: Data Profiling con font ridotto a 1.25rem e allineamento perfetto
+    # Sotto-sezione: Data Profiling (In grassetto, 14px)
     st.markdown("<p style='font-size: 14px; font-weight: bold; margin-bottom: 10px;'>Data Profiling</p>", unsafe_allow_html=True)
     
     col_prof1, col_prof2, col_prof3 = st.columns(3)
@@ -178,7 +177,8 @@ st.markdown("<h2 style='font-size: 22px; font-weight: bold; margin-top: 0px; mar
 # SCHEDA 2: PREDICTOR DASHBOARD
 # ------------------------------------------
 with tab2:
-    st.header("Simulatore d'Impatto in Tempo Reale")
+    # Titolo principale rimpicciolito ed elegante
+    st.markdown("<h2 style='font-size: 22px; font-weight: bold; margin-top: 0px; margin-bottom: 15px;'>Simulatore d'Impatto in Tempo Reale</h2>", unsafe_allow_html=True)
     
     with st.container(border=True):
         st.subheader("📝 Input Form: Profilo Studente Ipotetico")
@@ -240,7 +240,9 @@ with tab2:
 # SCHEDA 3: PERFORMANCE MODELLI
 # ------------------------------------------
 with tab3:
-    st.header("Validazione e Confronto Algoritmi")
+    # Titolo principale rimpicciolito ed elegante
+    st.markdown("<h2 style='font-size: 22px; font-weight: bold; margin-top: 0px; margin-bottom: 15px;'>Validazione e Confronto Algoritmi</h2>", unsafe_allow_html=True)
+    
     col_mod1, col_mod2 = st.columns(2)
     with col_mod1:
         with st.container(border=True):
