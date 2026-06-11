@@ -12,11 +12,12 @@ import os
 # ==========================================
 # 1. AUTENTICAZIONE E AUTORIZZAZIONE
 # ==========================================
-# Inizializziamo lo stato di autenticazione se non esiste
 if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
+if "username_loggato" not in st.session_state:
+    st.session_state["username_loggato"] = ""
 
-# Se l'utente non è autenticato, mostriamo solo la schermata di login
+# Se l'utente non è autenticato, mostriamo la schermata di login
 if not st.session_state["authenticated"]:
     st.set_page_config(page_title="🔒 Login - Student Predictor AI", layout="centered")
     
@@ -36,18 +37,19 @@ if not st.session_state["authenticated"]:
         if submit:
             if username == "admin" and password == "ia2026":
                 st.session_state["authenticated"] = True
+                st.session_state["username_loggato"] = username  # Salviamo il nome di chi si è loggato!
                 st.success("Accesso eseguito! Caricamento in corso...")
                 st.rerun()
             else:
                 st.error("Credenziali non corrette o utente non autorizzato.")
-    st.stop()  # Blocca l'esecuzione qui finché non si effettua il login
+    st.stop()
 
 # ==========================================
 # 2. CONFIGURAZIONE PAGINA E INTERFACCIA (POST-LOGIN)
 # ==========================================
 st.set_page_config(page_title="Student Predictor AI - Piattaforma Pro", layout="wide")
 
-# Header istituzionale
+# Header istituzionale con l'indicazione dell'utente connesso
 col_logo, col_titolo = st.columns([1, 5])
 with col_logo:
     if os.path.exists("logo.png"):
@@ -55,9 +57,14 @@ with col_logo:
     else:
         st.markdown("<h1 style='font-size: 4rem; margin:0;'>🎓</h1>", unsafe_allow_html=True)
 with col_titolo:
-    st.markdown("""
+    st.markdown(f"""
         <h1 style='margin:0; color:#1572B6;'>Student Predictor AI Dashboard</h1>
-        <p style='color:#666; margin:0; font-size:1.1rem;'>Sistema di monitoraggio delle carriere e modellazione predittiva</p>
+        <div style='display: flex; gap: 15px; align-items: center; margin-top: 5px;'>
+            <p style='color:#666; margin:0; font-size:1.1rem;'>Sistema di monitoraggio delle carriere e modellazione predittiva</p>
+            <span style='background-color: #e1f5fe; color: #0288d1; padding: 3px 10px; border-radius: 15px; font-size: 0.85rem; font-weight: bold; border: 1px solid #b3e5fc;'>
+                🟢 Utente: {st.session_state["username_loggato"]}
+            </span>
+        </div>
     """, unsafe_allow_html=True)
 
 st.markdown("---")
@@ -67,7 +74,9 @@ st.markdown("---")
 # ==========================================
 @st.cache_data
 def load_and_preprocess_data():
-    df = pd.read_csv("train_leggero.csv")
+    # Carichiamo il file train_leggero.csv (o train.csv a seconda di come si chiama nel tuo spazio)
+    nome_file_csv = "train_leggero.csv" if os.path.exists("train_leggero.csv") else "train.csv"
+    df = pd.read_csv(nome_file_csv)
     
     if 'id' in df.columns:
         df = df.drop(columns=['id'])
@@ -150,7 +159,7 @@ with tab1:
         st.subheader("• Heatmap delle Correlazioni Interattiva")
         corr_matrix = df_elaborato.select_dtypes(include=[np.number]).corr()
         fig_heat = px.imshow(corr_matrix, text_auto='.2f', color_continuous_scale='RdBu_r', aspect="auto")
-        fig_heat.update_layout(title_text='Matrice di Correlazione Organica (Passaci sopra col mouse!)', title_x=0.5)
+        fig_heat.update_layout(title_text='Matrice di Correlazione Organica (Passaci sopra col mouse!)', title_x=0. center)
         st.plotly_chart(fig_heat, use_container_width=True)
         
     with col_graf2:
