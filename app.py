@@ -17,7 +17,6 @@ if "authenticated" not in st.session_state:
 if "username_loggato" not in st.session_state:
     st.session_state["username_loggato"] = ""
 
-# Se l'utente non è autenticato, mostriamo la schermata di login
 if not st.session_state["authenticated"]:
     st.set_page_config(page_title="🔒 Login - Student Predictor AI", layout="centered")
     
@@ -37,7 +36,7 @@ if not st.session_state["authenticated"]:
         if submit:
             if username == "admin" and password == "ia2026":
                 st.session_state["authenticated"] = True
-                st.session_state["username_loggato"] = username  # Salviamo il nome di chi si è loggato!
+                st.session_state["username_loggato"] = username  
                 st.success("Accesso eseguito! Caricamento in corso...")
                 st.rerun()
             else:
@@ -49,7 +48,6 @@ if not st.session_state["authenticated"]:
 # ==========================================
 st.set_page_config(page_title="Student Predictor AI - Piattaforma Pro", layout="wide")
 
-# Header istituzionale con l'indicazione dell'utente connesso
 col_logo, col_titolo = st.columns([1, 5])
 with col_logo:
     if os.path.exists("logo.png"):
@@ -74,7 +72,6 @@ st.markdown("---")
 # ==========================================
 @st.cache_data
 def load_and_preprocess_data():
-    # Carichiamo il file train_leggero.csv (o train.csv a seconda di come si chiama nel tuo spazio)
     nome_file_csv = "train_leggero.csv" if os.path.exists("train_leggero.csv") else "train.csv"
     df = pd.read_csv(nome_file_csv)
     
@@ -158,8 +155,15 @@ with tab1:
     with col_graf1:
         st.subheader("• Heatmap delle Correlazioni Interattiva")
         corr_matrix = df_elaborato.select_dtypes(include=[np.number]).corr()
-        fig_heat = px.imshow(corr_matrix, text_auto='.2f', color_continuous_scale='RdBu_r', aspect="auto")
-        fig_heat.update_layout(title_text='Matrice di Correlazione Organica (Passaci sopra col mouse!)', title_x=0. center)
+        
+        fig_heat = px.imshow(
+            corr_matrix, 
+            text_auto='.2f', 
+            color_continuous_scale='RdBu_r',
+            aspect="auto"
+        )
+        # Riga corretta al millimetro qui sotto:
+        fig_heat.update_layout(title_text='Matrice di Correlazione Organica (Passaci sopra col mouse!)', title_x=0.5)
         st.plotly_chart(fig_heat, use_container_width=True)
         
     with col_graf2:
