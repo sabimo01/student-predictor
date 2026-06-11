@@ -137,4 +137,6 @@ tab1, tab2, tab3 = st.tabs(["📊 Exploratory Data Analysis (EDA)", "🔮 Predic
 # SCHEDA 1: EXPLORATORY DATA ANALYSIS (EDA)
 # ------------------------------------------
 with tab1:
-    st.markdown("<h2 style='font-size: 22px; font-weight: bold; margin-top: 0px; margin-bottom: 15px;'>Analisi Esplorativa dei Dati (EDA)</h2>
+    # CORRETTA AL MILLIMETRO: Chiusura stringa perfetta alla riga 140
+    st.markdown("<h2 style='font-size: 22px; font-weight: bold; margin-top: 0px; margin-bottom: 15px;'>Analisi Esplorativa dei Dati (EDA)</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size: 16px; font-
