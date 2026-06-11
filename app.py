@@ -10,7 +10,12 @@ from sklearn.metrics import mean_squared_error
 import os
 
 # ==========================================
-# 1. AUTENTICAZIONE E AUTORIZZAZIONE
+# 1. CONFIGURAZIONE UNICA DELLA PAGINA
+# ==========================================
+st.set_page_config(page_title="Student Predictor AI - Piattaforma Pro", layout="wide")
+
+# ==========================================
+# 2. AUTENTICAZIONE E AUTORIZZAZIONE
 # ==========================================
 if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
@@ -18,8 +23,6 @@ if "username_loggato" not in st.session_state:
     st.session_state["username_loggato"] = ""
 
 if not st.session_state["authenticated"]:
-    st.set_page_config(page_title="🔒 Login - Student Predictor AI", layout="centered")
-    
     st.markdown("""
         <div style="text-align: center; margin-top: 50px; background-color: #f0f2f6; padding: 25px; border-radius: 10px; border: 1px solid #e0e0e0;">
             <h2 style="margin: 0; color: #1572B6;">🔒 Accesso Riservato Piattaforma</h2>
@@ -44,16 +47,14 @@ if not st.session_state["authenticated"]:
     st.stop()
 
 # ==========================================
-# 2. CONFIGURAZIONE PAGINA E INTERFACCIA (POST-LOGIN)
+# 3. INTERFACCIA HEADER (POST-LOGIN)
 # ==========================================
-st.set_page_config(page_title="Student Predictor AI - Piattaforma Pro", layout="wide")
-
 col_logo, col_titolo = st.columns([1, 5])
 with col_logo:
     if os.path.exists("logo.png"):
         st.image("logo.png", width=120)
     else:
-        st.markdown("<h1 style='font-size: 4rem; margin:0;'>🎓</h1>", unsafe_allow_html=True)
+        st.markdown("<h1 style='margin:0; font-size:4rem;'>🎓</h1>", unsafe_allow_html=True)
 with col_titolo:
     st.markdown(f"""
         <h1 style='margin:0; color:#1572B6;'>Student Predictor AI Dashboard</h1>
@@ -68,7 +69,7 @@ with col_titolo:
 st.markdown("---")
 
 # ==========================================
-# 3. PIPELINE DI PREPROCESSING & FEATURE ENGINEERING
+# 4. PIPELINE DI PREPROCESSING & FEATURE ENGINEERING
 # ==========================================
 @st.cache_data
 def load_and_preprocess_data():
@@ -129,82 +130,6 @@ def train_models(X_t, X_v, y_t, y_v):
 modello_rf, modello_lr, rmse_rf, rmse_lr = train_models(X_train, X_test, y_train, y_test)
 
 # ==========================================
-# 4. CREAZIONE STRUTTURA A SCHEDE (TABS)
+# 5. CREAZIONE STRUTTURA A SCHEDE (TABS)
 # ==========================================
-tab1, tab2, tab3 = st.tabs(["📊 Exploratory Data Analysis (EDA)", "🔮 Predictor Dashboard", "📈 Performance Modelli"])
-
-# ------------------------------------------
-# SCHEDA 1: EXPLORATORY DATA ANALYSIS (EDA)
-# ------------------------------------------
-with tab1:
-    # Righe accorciate e rese sicure al 100% contro gli a capo dei browser
-    st.markdown("<h2 style='font-size:22px; font-weight:bold; margin-top:0px;'>Analisi Esplorativa dei Dati (EDA)</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='font-size:16px; font-weight:bold;'>Data Profiling</p>", unsafe_allow_html=True)
-    
-    col_prof1, col_prof2, col_prof3 = st.columns(3)
-    with col_prof1:
-        st.metric("Numero Totale di Righe", df_originale.shape[0])
-    with col_prof2:
-        st.metric("Numero di Colonne", df_originale.shape[1])
-    with col_prof3:
-        st.write("**Tipi di Dati Rilevati:**")
-        st.dataframe(df_originale.dtypes.astype(str).to_frame(name="Tipo di Dato"))
-        
-    st.markdown("---")
-    
-    col_graf1, col_graf2 = st.columns(2)
-    with col_graf1:
-        st.markdown("<p style='font-size:16px; font-weight:bold;'>Heatmap delle Correlazioni Interattiva</p>", unsafe_allow_html=True)
-        corr_matrix = df_elaborato.select_dtypes(include=[np.number]).corr()
-        
-        fig_heat = px.imshow(
-            corr_matrix, 
-            text_auto='.2f', 
-            color_continuous_scale='RdBu_r',
-            aspect="auto"
-        )
-        fig_heat.update_layout(title_text='Matrice di Correlazione Organica (Passaci sopra col mouse!)', title_x=0.5)
-        st.plotly_chart(fig_heat, use_container_width=True)
-        
-    with col_graf2:
-        st.markdown("<p style='font-size:16px; font-weight:bold;'>Distribuzione della Variabile Target</p>", unsafe_allow_html=True)
-        fig_dist = px.histogram(df_originale, x=target_col, color_discrete_sequence=['#1572B6'])
-        fig_dist.update_layout(title_text=f"Distribuzione dei Punteggi: {target_col}", title_x=0.5, xaxis_title="Punteggio d'Esame", yaxis_title="Conteggio Studenti")
-        st.plotly_chart(fig_dist, use_container_width=True)
-
-# ------------------------------------------
-# SCHEDA 2: PREDICTOR DASHBOARD
-# ------------------------------------------
-with tab2:
-    st.markdown("<h2 style='font-size:22px; font-weight:bold; margin-top:0px;'>Simulatore d'Impatto in Tempo Reale</h2>", unsafe_allow_html=True)
-    
-    with st.container(border=True):
-        st.markdown("<p style='font-size:18px; font-weight:bold;'>📝 Input Form: Profilo Studente Ipotetico</p>", unsafe_allow_html=True)
-        
-        c1, c2, c3, c4 = st.columns(4)
-        with c1:
-            in_eta = st.number_input("Età Anagrafica", min_value=15, max_value=90, value=20)
-            in_genere = st.selectbox("Genere", opzioni_menu.get('gender', ['male', 'female']))
-        with c2:
-            in_corso = st.selectbox("Corso Frequentato", opzioni_menu.get('course', ['b.tech', 'b.sc', 'b.com']))
-            in_ore_studio = st.slider("Ore di Studio Giorni", 0.0, 12.0, 4.0, step=0.5)
-        with c3:
-            in_presenza = st.slider("Frequenza Lezioni %", 0.0, 100.0, 80.0, step=1.0)
-            in_qualita_sonno = st.selectbox("Qualità del Sonno", opzioni_menu.get('sleep_quality', ['good', 'average', 'poor']))
-        with c4:
-            in_ore_sonno = st.slider("Ore Sonno Notturne", 4.0, 12.0, 7.0, step=0.5)
-            in_metodo = st.selectbox("Metodo di Studio", opzioni_menu.get('study_method', ['self-study', 'group study']))
-            
-    if st.button("🚀 CALCOLA PREVISIONE IN TEMPO REALE", use_container_width=True):
-        dati_simulati = {
-            'age': in_eta, 'gender': in_genere, 'course': in_corso, 'study_hours': in_ore_studio,
-            'class_attendance': in_presenza, 'sleep_hours': in_ore_sonno, 'sleep_quality': in_qualita_sonno,
-            'study_method': in_metodo, 'Carico_Totale_Ore': in_ore_studio + in_ore_sonno
-        }
-        input_user_df = pd.DataFrame([dati_simulati])
-        
-        for col in input_user_df.columns:
-            if col in codici_categorie:
-                valore = str(input_user_df[col].iloc[0]).strip()
-                lista_cat = list(codici_categorie[col])
-                input_user_
+tab1, tab2, tab3 = st.tabs(
