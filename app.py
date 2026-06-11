@@ -1,144 +1,286 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error
+import os
 
-# Configurazione Pagina con tema scuro/futuristico supportato di serie
-st.set_page_config(
-    page_title="Student Predictor AI", 
-    page_icon="🎓",
-    layout="wide"
-)
-
-# Header Principale con Stile
-st.markdown("""
-    <div style="background-gradient: linear-gradient(135deg, #1572B6, #00875A); padding: 20px; border-radius: 10px; margin-bottom: 25px;">
-        <h1 style="color: white; margin: 0; text-align: center;">🎓 Student Predictor AI</h1>
-        <p style="color: #E0E0E0; margin: 5px 0 0 0; text-align: center; font-size: 1.1rem;">
-            Dashboard Predittiva Avanzata basata su Machine Learning per la Stima delle Performance Scolastiche
-        </p>
-    </div>
-""", unsafe_allow_html=True)
-
-# Carichiamo il file di allenamento in modo super veloce
-@st.cache_data
-def carica_e_allena():
-    train_df = pd.read_csv("train_leggero.csv")
+# ==========================================
+# 1. AUTENTICAZIONE E AUTORIZZAZIONE
+# ==========================================
+def login():
+    st.markdown("""
+        <div style="text-align: center; margin-top: 50px;">
+            <h2>🔒 Accesso Piattaforma Student Predictor</h2>
+            <p>Inserisci le credenziali autorizzate per accedere al sistema e alla Knowledge Base.</p>
+        </div>
+    """, unsafe_allow_html=True)
     
-    if 'id' in train_df.columns:
-        train_df = train_df.drop(columns=['id'])
-    
-    colonna_target = train_df.columns[-1]
-    
-    colonne_testo = train_df.select_dtypes(include=['object']).columns
-    colonne_numeriche = train_df.select_dtypes(exclude=['object']).columns
-    
-    df_numerico = train_df.copy()
-    
-    for col in colonne_numeriche:
-        df_numerico[col] = pd.to_numeric(df_numerico[col], errors='coerce')
-        df_numerico[col] = df_numerico[col].fillna(df_numerico[col].mean())
-        
-    mappature_input = {}
-    for col in colonne_testo:
-        df_numerico[col] = df_numerico[col].fillna('Sconosciuto').astype(str).str.strip()
-        categorie = df_numerico[col].astype('category').cat.categories
-        df_numerico[col] = df_numerico[col].astype('category').cat.codes
-        mappature_input[col] = categorie
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        with st.form("Login Form"):
+            username = st.text_input("Username")
+            password = st.text_input("Password", type="password")
+            submit = st.form_submit_button("Accedi")
             
-    X = df_numerico.drop(columns=[colonna_target])
-    y = df_numerico[colonna_target]
-    
-    modello = RandomForestRegressor(n_estimators=50, max_depth=10, random_state=42, n_jobs=-1)
-    modello.fit(X, y)
-    
-    return modello, mappature_input, train_df, colonna_target
+            if submit:
+                if username == "admin" and password == "ia2026":
+                    st.session_state["authenticated"] = True
+                    st.success("Accesso eseguito con successo!")
+                    st.rerun()
+                else:
+                    st.error("Credenziali non corrette o non autorizzate.")
 
-# Avviamo l'allenamento velocizzato
-try:
-    with st.spinner("L'Intelligenza Artificiale sta calibrando i modelli... 🧠"):
-        modello, mappature_input, train_df, colonna_target = carica_e_allena()
+if "authenticated" not in st.session_state:
+    st.session_state["authenticated"] = False
 
-    # Organizzazione in due macro-sezioni con i box (st.container)
+if not st.session_state["authenticated"]:
+    login()
+    st.stop()
+
+# ==========================================
+# 2. CONFIGURAZIONE PAGINA E INTERFACCIA
+# ==========================================
+st.set_page_config(page_title="Student Predictor AI - Piattaforma Pro", layout="wide")
+
+# Header istituzionale con logo di fallback
+col_logo, col_titolo = st.columns([1, 5])
+with col_logo:
+    if os.path.exists("logo.png"):
+        st.image("logo.png", width=120)
+    else:
+        st.markdown("<h1 style='font-size: 4rem; margin:0;'>🎓</h1>", unsafe_allow_html=True)
+with col_titolo:
+    st.markdown("""
+        <h1 style='margin:0; color:#1572B6;'>Student Predictor AI Dashboard</h1>
+        <p style='color:#666; margin:0; font-size:1.1rem;'>Sistema di monitoraggio delle carriere e modellazione predittiva</p>
+    """, unsafe_allow_html=True)
+
+st.markdown("---")
+
+# ==========================================
+# 3. PIPELINE DI PREPROCESSING & FEATURE ENGINEERING
+# ==========================================
+@st.cache_data
+def load_and_preprocess_data():
+    # Carichiamo il dataset leggero creato per bypassare i limiti di GitHub
+    df = pd.read_csv("train_leggero.csv")
+    
+    # [FEATURE ENGINEERING] Selezione: Rimozione ID irrilevanti
+    if 'id' in df.columns:
+        df = df.drop(columns=['id'])
+        
+    # [FEATURE ENGINEERING] Cleaning: Rimozione duplicati
+    df = df.drop_duplicates()
+    
+    colonne_testo = df.select_dtypes(include=['object']).columns
+    colonne_numeriche = df.select_dtypes(exclude=['object']).columns
+    
+    # Gestione valori nulli numerici
+    for col in colonne_numeriche:
+        df[col] = pd.to_numeric(df[col], errors='coerce')
+        df[col] = df[col].fillna(df[col].mean())
+        
+    # [FEATURE ENGINEERING] Feature Creation: Creazione del "Carico Totale Ore"
+    if 'study_hours' in df.columns:
+        df['Carico_Totale_Ore'] = df['study_hours'] + df.get('sleep_hours', 7.0)
+    
+    # Estrazione delle opzioni uniche per i menu a tendina prima della codifica
+    mappature_opzioni = {}
+    for col in colonne_testo:
+        df[col] = df[col].fillna('Sconosciuto').astype(str).str.strip()
+        mappature_opzioni[col] = df[col].unique()
+        
+    # [FEATURE ENGINEERING] Encoding: Conversione testi in codici numerici
+    df_encoded = df.copy()
+    codici_categorie = {}
+    for col in colonne_testo:
+        categorie = df_encoded[col].astype('category').cat.categories
+        df_encoded[col] = df_encoded[col].astype('category').cat.codes
+        codici_categorie[col] = categorie
+        
+    return df, df_encoded, mappature_opzioni, codici_categorie
+
+df_originale, df_elaborato, opzioni_menu, codici_categorie = load_and_preprocess_data()
+target_col = df_elaborato.columns[-2] # La colonna target prima della colonna creata alla fine
+
+# Divisione in Feature (X) e Target (y)
+X = df_elaborato.drop(columns=[target_col])
+y = df_elaborato[target_col]
+
+# [SVILUPPO MODELLO] Training/Test Split (80% Train, 20% Test)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Addestramento concorrente degli algoritmi richiesti
+@st.cache_resource
+def train_models(X_t, X_v, y_t, y_v):
+    # Modello 1: Random Forest
+    rf = RandomForestRegressor(n_estimators=50, max_depth=10, random_state=42, n_jobs=-1)
+    rf.fit(X_t, y_t)
+    pred_rf = rf.predict(X_v)
+    rmse_rf = np.sqrt(mean_squared_error(y_v, pred_rf))
+    
+    # Modello 2: Regressione Lineare
+    lr = LinearRegression()
+    lr.fit(X_t, y_t)
+    pred_lr = lr.predict(X_v)
+    rmse_lr = np.sqrt(mean_squared_error(y_v, pred_lr))
+    
+    return rf, lr, rmse_rf, rmse_lr
+
+modello_rf, modello_lr, rmse_rf, rmse_lr = train_models(X_train, X_test, y_train, y_test)
+
+# ==========================================
+# 4. CREAZIONE STRUTTURA A SCHEDE (TABS)
+# ==========================================
+tab1, tab2, tab3 = st.tabs(["📊 Exploratory Data Analysis (EDA)", "🔮 Predictor Dashboard", "📈 Performance Modelli"])
+
+# ------------------------------------------
+# SCHEDA 1: EXPLORATORY DATA ANALYSIS (EDA)
+# ------------------------------------------
+with tab1:
+    st.header("Analisi Esplorativa dei Dati (EDA)")
+    
+    # Sotto-sezione: Data Profiling
+    st.subheader("• Data Profiling")
+    col_prof1, col_prof2, col_prof3 = st.columns(3)
+    with col_prof1:
+        st.metric("Numero Totale di Righe", df_originale.shape[0])
+    with col_prof2:
+        st.metric("Numero di Colonne", df_originale.shape[1])
+    with col_prof3:
+        st.write("**Tipi di Dati Rilevati:**")
+        st.dataframe(df_originale.dtypes.astype(str).to_frame(name="Tipo di Dato"))
+        
+    st.markdown("---")
+    
+    # Sotto-sezione: Grafici Distribuzione e Correlazione
+    col_graf1, col_graf2 = st.columns(2)
+    with col_graf1:
+        st.subheader("• Heatmap delle Correlazioni")
+        fig_heat, ax_heat = plt.subplots(figsize=(10, 8))
+        corr_matrix = df_elaborato.select_dtypes(include=[np.number]).corr()
+        sns.heatmap(corr_matrix, annot=True, cmap="coolwarm", fmt=".2f", ax=ax_heat)
+        plt.title("Matrice di Correlazione Organica")
+        st.pyplot(fig_heat)
+        
+    with col_graf2:
+        st.subheader("• Distribuzione della Variabile Target")
+        fig_dist, ax_dist = plt.subplots(figsize=(10, 8))
+        sns.histplot(df_originale[target_col], kde=True, color="#1572B6", ax=ax_dist)
+        plt.title(f"Distribuzione dei Punteggi: {target_col}")
+        plt.xlabel("Punteggio")
+        plt.ylabel("Frequenza Studenti")
+        st.pyplot(fig_dist)
+
+# ------------------------------------------
+# SCHEDA 2: PREDICTOR DASHBOARD
+# ------------------------------------------
+with tab2:
+    st.header("Simulatore d'Impatto in Tempo Reale")
+    
     with st.container(border=True):
-        st.markdown("### 🔮 Pannello Configurazione Studente")
-        st.write("Modifica i parametri sottostanti per simulare il profilo di uno studente.")
+        st.subheader("📝 Input Form: Profilo Studente Ipotetico")
         
-        # Divisione pulita in due macro colonne principali
-        sinistra, destra = st.columns(2, gap="large")
-        
-        def ottieni_opzioni(nome_colonna, default_lista):
-            if nome_colonna in train_df.columns:
-                return train_df[nome_colonna].dropna().unique()
-            return default_lista
-
-        with sinistra:
-            st.markdown("**Anagrafica e Percorso**")
-            eta = st.number_input("Età dello studente", min_value=15, max_value=100, value=20)
-            genere = st.selectbox("Genere", ottieni_opzioni('gender', ['male', 'female']))
-            corso = st.selectbox("Corso di Studi", ottieni_opzioni('course', ['b.tech', 'b.sc', 'b.com']))
-            metodo_studio = st.selectbox("Metodo di studio prevalente", ottieni_opzioni('study_method', ['self-study', 'group study']))
-
-        with destra:
-            st.markdown("**Abitudini e Frequenza**")
-            ore_studio = st.slider("Ore di studio giornaliere", 0.0, 12.0, 4.0, step=0.5)
-            presenza = st.slider("Frequenza delle lezioni (%)", 0.0, 100.0, 75.0, step=1.0)
-            ore_sonno = st.slider("Ore di sonno notturne", 4.0, 12.0, 7.0, step=0.5)
-            qualita_sonno = st.selectbox("Qualità del sonno percepita", ottieni_opzioni('sleep_quality', ['good', 'average', 'poor']))
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # Area del Pulsante centrata e stilizzata
-    col_btn, _ = st.columns([1, 3])
-    with col_btn:
-        attiva_previsione = st.button("🚀 ELABORA PREVISIONE AI", use_container_width=True)
-
-    # Sezione Verdetto Finale
-    if attiva_previsione:
-        dati_utente = {
-            'age': eta, 'gender': genere, 'course': corso, 'study_hours': ore_studio,
-            'class_attendance': presenza, 'sleep_hours': ore_sonno, 'sleep_quality': qualita_sonno,
-            'study_method': metodo_studio
+        c1, c2, c3, c4 = st.columns(4)
+        with c1:
+            in_eta = st.number_input("Età Anagrafica", min_value=15, max_value=90, value=20)
+            in_genere = st.selectbox("Genere", opzioni_menu.get('gender', ['male', 'female']))
+        with c2:
+            in_corso = st.selectbox("Corso Frequentato", opzioni_menu.get('course', ['b.tech', 'b.sc', 'b.com']))
+            in_ore_studio = st.slider("Ore di Studio Giorni", 0.0, 12.0, 4.0, step=0.5)
+        with c3:
+            in_presenza = st.slider("Frequenza Lezioni %", 0.0, 100.0, 80.0, step=1.0)
+            in_qualita_sonno = st.selectbox("Qualità del Sonno", opzioni_menu.get('sleep_quality', ['good', 'average', 'poor']))
+        with c4:
+            in_ore_sonno = st.slider("Ore Sonno Notturne", 4.0, 12.0, 7.0, step=0.5)
+            in_metodo = st.selectbox("Metodo di Studio", opzioni_menu.get('study_method', ['self-study', 'group study']))
+            
+    if st.button("🚀 CALCOLA PREVISIONE IN TEMPO REALE", use_container_width=True):
+        # Generazione dizionario dati basato sull'input utente
+        dati_simulati = {
+            'age': in_eta, 'gender': in_genere, 'course': in_corso, 'study_hours': in_ore_studio,
+            'class_attendance': in_presenza, 'sleep_hours': in_ore_sonno, 'sleep_quality': in_qualita_sonno,
+            'study_method': in_metodo, 'Carico_Totale_Ore': in_ore_studio + in_ore_sonno
         }
         
-        input_df = pd.DataFrame([dati_utente])
+        input_user_df = pd.DataFrame([dati_simulati])
         
-        for col in input_df.columns:
-            if col in mappature_input:
-                valore_cercato = str(input_df[col].iloc[0]).strip()
-                lista_cat = list(mappature_input[col])
-                if valore_cercato in lista_cat:
-                    input_df[col] = lista_cat.index(valore_cercato)
-                else:
-                    input_df[col] = 0
-                    
-        colonne_allenamento = train_df.drop(columns=[colonna_target], errors='ignore').columns
-        input_df = input_df.reindex(columns=colonne_allenamento, fill_value=0)
+        # Allineamento categorie testuali convertite in numeri
+        for col in input_user_df.columns:
+            if col in codici_categorie:
+                valore = str(input_user_df[col].iloc[0]).strip()
+                lista_cat = list(codici_categorie[col])
+                input_user_df[col] = lista_cat.index(valore) if valore in lista_cat else 0
+                
+        input_user_df = input_user_df.reindex(columns=X.columns, fill_value=0)
+        voto_predetto = modello_rf.predict(input_user_df)[0]
         
-        previsione_numerica = modello.predict(input_df)[0]
+        st.markdown("<br>", unsafe_allow_html=True)
+        col_res, col_feat = st.columns([1, 1], gap="large")
         
-        # Mostriamo il risultato dentro un bellissimo box evidenziato
-        st.markdown("---")
+        with col_res:
+            st.markdown("### 🎯 Verdetto Predittivo")
+            st.metric(label="Voto Finale Stimato", value=f"{voto_predetto:.2f} / 100")
+            
+            if voto_predetto >= 70:
+                st.success("Rendimento Elevato: Le abitudini impostate generano una proiezione accademica eccellente.")
+            elif voto_predetto >= 50:
+                st.warning("Rendimento Medio: Margini di miglioramento stabili bilanciando riposo e presenza.")
+            else:
+                st.error("Rendimento Critico: Il sistema consiglia di incrementare la presenza e le ore di studio strutturato.")
+                
+        with col_feat:
+            st.markdown("### 📊 Feature Importance (I 3 fattori principali)")
+            importanze = modello_rf.feature_importances_
+            nomi_features = X.columns
+            
+            df_features = pd.DataFrame({'Fattore': nomi_features, 'Importanza': importanze})
+            top_3 = df_features.sort_values(by='Importanza', ascending=False).head(3)
+            
+            fig_bar, ax_bar = plt.subplots(figsize=(6, 4))
+            sns.barplot(x='Importanza', y='Fattore', data=top_3, palette="viridis", ax=ax_bar)
+            plt.title("I 3 fattori che influenzano di più il voto finale")
+            st.pyplot(fig_bar)
+
+# ------------------------------------------
+# SCHEDA 3: PERFORMANCE MODELLI
+# ------------------------------------------
+with tab3:
+    st.header("Validazione e Confronto Algoritmi")
+    st.write("Misurazione dell'errore quadratico medio dei modelli matematici per decretare la precisione dell'architettura.")
+    
+    col_mod1, col_mod2 = st.columns(2)
+    with col_mod1:
         with st.container(border=True):
-            st.markdown(f"### 🎯 Risultato Analisi Predittiva")
+            st.markdown("### 🌲 Approccio 1: Random Forest Regressor")
+            st.write("Algoritmo non lineare basato su ensemble di alberi decisionali.")
+            st.metric(label="Errore Medio (RMSE)", value=f"{rmse_rf:.4f}")
+            st.caption("Un valore di RMSE più basso indica predizioni più accurate e vicine al dato reale.")
             
-            col_metric, col_text = st.columns([1, 2])
-            with col_metric:
-                # La metrica gigante stile cruscotto
-                st.metric(label="Punteggio Esame Stimato (0-100)", value=f"{previsione_numerica:.1f}/100")
+    with col_mod2:
+        with st.container(border=True):
+            st.markdown("### 📈 Approccio 2: Regressione Lineare")
+            st.write("Modello matematico statistico lineare standard.")
+            st.metric(label="Errore Medio (RMSE)", value=f"{rmse_lr:.4f}")
+            st.caption("Punto di riferimento classico per stimare i trend quantitativi continui.")
             
-            with col_text:
-                st.write("**Nota del Modello:**")
-                if previsione_numerica >= 75:
-                    st.success("L'algoritmo rileva un profilo ad altissimo rendimento. Le abitudini attuali supportano pienamente il successo accademico.")
-                elif previsione_numerica >= 55:
-                    st.warning("Profilo in linea con la media. Ottimizzando le ore di sonno o la frequenza delle lezioni è possibile incrementare il punteggio stimato.")
-                else:
-                    st.error("Attenzione: Il modello evidenzia potenziali elementi di rischio (es. sonno insufficiente o bassa frequenza). Si consiglia di rivedere la pianificazione.")
+    st.markdown("---")
+    st.subheader("💡 Verdetto del Team di Data Science")
+    
+    # Estraggo la differenza matematica fuori dalla stringa per azzerare l'errore di sintassi della "f"
+    differenza_calcolata = abs(rmse_lr - rmse_rf)
+    
+    if rmse_rf < rmse_lr:
+        st.info(f"L'algoritmo **Random Forest** è stato scelto come motore principale poiché registra un errore RMSE inferiore di **{differenza_calcolata:.4f}** punti rispetto alla Regressione Lineare.")
+    else:
+        st.info("L'algoritmo **Regressione Lineare** risulta più performante o equivalente in questo specifico sotto-insieme di dati.")
 
-    # Sezione Espandibile per Esplorare i Dati originali in fondo
-    st.markdown("<br><br>", unsafe_allow_html=True)
-    with st.expander("📊 Clicca qui per ispezionare un'anteprima dei dati storici d'allenamento"):
-        st.dataframe(train_df.head(10), use_container_width=True)
-
-except Exception as e:
-    st.error(f"Si è verificato un errore durante l'allenamento dell'AI: {e}")
+# Anteprima Dati Storici di Knowledge Base (In fondo all'applicazione)
+st.markdown("<br><br>", unsafe_allow_html=True)
+with st.expander("📊 Ispeziona un'anteprima dei dati storici d'allenamento (Knowledge Base)"):
+    st.dataframe(df_originale.head(10), use_container_width=True)
