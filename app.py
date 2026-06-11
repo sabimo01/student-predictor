@@ -1,8 +1,8 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
+import plotly.express as px  # <-- La nuova super libreria grafica!
+import plotly.graph_objects as go
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
@@ -47,7 +47,6 @@ if not st.session_state["authenticated"]:
 # ==========================================
 st.set_page_config(page_title="Student Predictor AI - Piattaforma Pro", layout="wide")
 
-# Header istituzionale con logo di fallback
 col_logo, col_titolo = st.columns([1, 5])
 with col_logo:
     if os.path.exists("logo.png"):
@@ -67,35 +66,28 @@ st.markdown("---")
 # ==========================================
 @st.cache_data
 def load_and_preprocess_data():
-    # Carichiamo il dataset leggero creato per bypassare i limiti di GitHub
     df = pd.read_csv("train_leggero.csv")
     
-    # [FEATURE ENGINEERING] Selezione: Rimozione ID irrilevanti
     if 'id' in df.columns:
         df = df.drop(columns=['id'])
         
-    # [FEATURE ENGINEERING] Cleaning: Rimozione duplicati
     df = df.drop_duplicates()
     
     colonne_testo = df.select_dtypes(include=['object']).columns
     colonne_numeriche = df.select_dtypes(exclude=['object']).columns
     
-    # Gestione valori nulli numerici
     for col in colonne_numeriche:
         df[col] = pd.to_numeric(df[col], errors='coerce')
         df[col] = df[col].fillna(df[col].mean())
         
-    # [FEATURE ENGINEERING] Feature Creation: Creazione del "Carico Totale Ore"
     if 'study_hours' in df.columns:
         df['Carico_Totale_Ore'] = df['study_hours'] + df.get('sleep_hours', 7.0)
     
-    # Estrazione delle opzioni uniche per i menu a tendina prima della codifica
     mappature_opzioni = {}
     for col in colonne_testo:
         df[col] = df[col].fillna('Sconosciuto').astype(str).str.strip()
         mappature_opzioni[col] = df[col].unique()
         
-    # [FEATURE ENGINEERING] Encoding: Conversione testi in codici numerici
     df_encoded = df.copy()
     codici_categorie = {}
     for col in colonne_testo:
@@ -106,25 +98,20 @@ def load_and_preprocess_data():
     return df, df_encoded, mappature_opzioni, codici_categorie
 
 df_originale, df_elaborato, opzioni_menu, codici_categorie = load_and_preprocess_data()
-target_col = df_elaborato.columns[-2] # La colonna target prima della colonna creata alla fine
+target_col = df_elaborato.columns[-2] 
 
-# Divisione in Feature (X) e Target (y)
 X = df_elaborato.drop(columns=[target_col])
 y = df_elaborato[target_col]
 
-# [SVILUPPO MODELLO] Training/Test Split (80% Train, 20% Test)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Addestramento concorrente degli algoritmi richiesti
 @st.cache_resource
 def train_models(X_t, X_v, y_t, y_v):
-    # Modello 1: Random Forest
     rf = RandomForestRegressor(n_estimators=50, max_depth=10, random_state=42, n_jobs=-1)
     rf.fit(X_t, y_t)
     pred_rf = rf.predict(X_v)
     rmse_rf = np.sqrt(mean_squared_error(y_v, pred_rf))
     
-    # Modello 2: Regressione Lineare
     lr = LinearRegression()
     lr.fit(X_t, y_t)
     pred_lr = lr.predict(X_v)
@@ -140,12 +127,11 @@ modello_rf, modello_lr, rmse_rf, rmse_lr = train_models(X_train, X_test, y_train
 tab1, tab2, tab3 = st.tabs(["📊 Exploratory Data Analysis (EDA)", "🔮 Predictor Dashboard", "📈 Performance Modelli"])
 
 # ------------------------------------------
-# SCHEDA 1: EXPLORATORY DATA ANALYSIS (EDA)
+# SCHEDA 1: EXPLORATORY DATA ANALYSIS (EDA) - VERSIONE INTERATTIVA PLOTLY
 # ------------------------------------------
 with tab1:
     st.header("Analisi Esplorativa dei Dati (EDA)")
     
-    # Sotto-sezione: Data Profiling
     st.subheader("• Data Profiling")
     col_prof1, col_prof2, col_prof3 = st.columns(3)
     with col_prof1:
@@ -158,24 +144,38 @@ with tab1:
         
     st.markdown("---")
     
-    # Sotto-sezione: Grafici Distribuzione e Correlazione
     col_graf1, col_graf2 = st.columns(2)
     with col_graf1:
-        st.subheader("• Heatmap delle Correlazioni")
-        fig_heat, ax_heat = plt.subplots(figsize=(10, 8))
+        st.subheader("• Heatmap delle Correlazioni Interattiva")
         corr_matrix = df_elaborato.select_dtypes(include=[np.number]).corr()
-        sns.heatmap(corr_matrix, annot=True, cmap="coolwarm", fmt=".2f", ax=ax_heat)
-        plt.title("Matrice di Correlazione Organica")
-        st.pyplot(fig_heat)
+        
+        # Heatmap ultra-moderna con Plotly
+        fig_heat = px.imshow(
+            corr_matrix, 
+            text_auto='.2f', 
+            color_continuous_scale='RdBu_r',
+            aspect="auto"
+        )
+        fig_heat.update_layout(title_text='Matrice di Correlazione Organica (Passaci sopra il mouse!)', title_x=0.5)
+        st.plotly_chart(fig_heat, use_container_width=True)
         
     with col_graf2:
         st.subheader("• Distribuzione della Variabile Target")
-        fig_dist, ax_dist = plt.subplots(figsize=(10, 8))
-        sns.histplot(df_originale[target_col], kde=True, color="#1572B6", ax=ax_dist)
-        plt.title(f"Distribuzione dei Punteggi: {target_col}")
-        plt.xlabel("Punteggio")
-        plt.ylabel("Frequenza Studenti")
-        st.pyplot(fig_dist)
+        
+        # Istogramma interattivo con Plotly
+        fig_dist = px.histogram(
+            df_originale, 
+            x=target_col, 
+            kde=True, 
+            color_discrete_sequence=['#1572B6']
+        )
+        fig_dist.update_layout(
+            title_text=f"Distribuzione dei Punteggi: {target_col}",
+            title_x=0.5,
+            xaxis_title="Punteggio d'Esame",
+            yaxis_title="Conteggio Studenti"
+        )
+        st.plotly_chart(fig_dist, use_container_width=True)
 
 # ------------------------------------------
 # SCHEDA 2: PREDICTOR DASHBOARD
@@ -201,7 +201,6 @@ with tab2:
             in_metodo = st.selectbox("Metodo di Studio", opzioni_menu.get('study_method', ['self-study', 'group study']))
             
     if st.button("🚀 CALCOLA PREVISIONE IN TEMPO REALE", use_container_width=True):
-        # Generazione dizionario dati basato sull'input utente
         dati_simulati = {
             'age': in_eta, 'gender': in_genere, 'course': in_corso, 'study_hours': in_ore_studio,
             'class_attendance': in_presenza, 'sleep_hours': in_ore_sonno, 'sleep_quality': in_qualita_sonno,
@@ -210,7 +209,6 @@ with tab2:
         
         input_user_df = pd.DataFrame([dati_simulati])
         
-        # Allineamento categorie testuali convertite in numeri
         for col in input_user_df.columns:
             if col in codici_categorie:
                 valore = str(input_user_df[col].iloc[0]).strip()
@@ -240,12 +238,23 @@ with tab2:
             nomi_features = X.columns
             
             df_features = pd.DataFrame({'Fattore': nomi_features, 'Importanza': importanze})
-            top_3 = df_features.sort_values(by='Importanza', ascending=False).head(3)
+            top_3 = df_features.sort_values(by='Importanza', ascending=True).head(3) # Ascending true per visualizzazione orizzontale corretta
             
-            fig_bar, ax_bar = plt.subplots(figsize=(6, 4))
-            sns.barplot(x='Importanza', y='Fattore', data=top_3, palette="viridis", ax=ax_bar)
-            plt.title("I 3 fattori che influenzano di più il voto finale")
-            st.pyplot(fig_bar)
+            # Grafico a barre orizzontale moderno con Plotly
+            fig_bar = px.bar(
+                top_3, 
+                x='Importanza', 
+                y='Fattore', 
+                orientation='h',
+                color='Importanza',
+                color_continuous_scale='Viridis'
+            )
+            fig_bar.update_layout(
+                title_text="I 3 fattori chiave che influenzano di più il voto finale",
+                title_x=0.5,
+                showlegend=False
+            )
+            st.plotly_chart(fig_bar, use_container_width=True)
 
 # ------------------------------------------
 # SCHEDA 3: PERFORMANCE MODELLI
@@ -272,15 +281,14 @@ with tab3:
     st.markdown("---")
     st.subheader("💡 Verdetto del Team di Data Science")
     
-    # Estraggo la differenza matematica fuori dalla stringa per azzerare l'errore di sintassi della "f"
     differenza_calcolata = abs(rmse_lr - rmse_rf)
     
     if rmse_rf < rmse_lr:
-        st.info(f"L'algoritmo **Random Forest** è stato scelto come motore principale poiché registra un errore RMSE inferiore di **{differenza_calcolata:.4f}** punti rispetto alla Regressione Lineare.")
+        st.info(f"L'algoritmo **Random Forest** è stato scelto come motore principale poiché registra un errore RMSE inferior di **{differenza_calcolata:.4f}** punti rispetto alla Regressione Lineare.")
     else:
         st.info("L'algoritmo **Regressione Lineare** risulta più performante o equivalente in questo specifico sotto-insieme di dati.")
 
-# Anteprima Dati Storici di Knowledge Base (In fondo all'applicazione)
+# Anteprima Dati Storici di Knowledge Base
 st.markdown("<br><br>", unsafe_allow_html=True)
 with st.expander("📊 Ispeziona un'anteprima dei dati storici d'allenamento (Knowledge Base)"):
     st.dataframe(df_originale.head(10), use_container_width=True)
