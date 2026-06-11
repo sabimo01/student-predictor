@@ -140,7 +140,7 @@ with tab1:
     st.markdown("<h2 style='font-size: 22px; font-weight: bold; margin-top: 0px; margin-bottom: 15px;'>Analisi Esplorativa dei Dati (EDA)</h2>", unsafe_allow_html=True)
     
     # Sotto-sezione: Data Profiling (In grassetto, 14px)
-    st.markdown("<p style='font-size: 14px; font-weight: bold; margin-bottom: 10px;'>Data Profiling</p>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size: 16px; font-weight: bold; margin-bottom: 10px;'>Data Profiling</p>", unsafe_allow_html=True)
     
     col_prof1, col_prof2, col_prof3 = st.columns(3)
     with col_prof1:
@@ -155,7 +155,7 @@ with tab1:
     
     col_graf1, col_graf2 = st.columns(2)
     with col_graf1:
-        st.subheader("• Heatmap delle Correlazioni Interattiva")
+st.markdown("<p style='font-size: 16px; font-weight: bold; margin-bottom: 10px;'>Heatmap delle Correlazioni Interattiva</p>", unsafe_allow_html=True)
         corr_matrix = df_elaborato.select_dtypes(include=[np.number]).corr()
         
         fig_heat = px.imshow(
@@ -168,7 +168,7 @@ with tab1:
         st.plotly_chart(fig_heat, use_container_width=True)
         
     with col_graf2:
-        st.subheader("• Distribuzione della Variabile Target")
+        st.markdown("<p style='font-size: 16px; font-weight: bold; margin-bottom: 10px;'>Distribuzione della Variabile Target</p>", unsafe_allow_html=True)
         fig_dist = px.histogram(df_originale, x=target_col, color_discrete_sequence=['#1572B6'])
         fig_dist.update_layout(title_text=f"Distribuzione dei Punteggi: {target_col}", title_x=0.5, xaxis_title="Punteggio d'Esame", yaxis_title="Conteggio Studenti")
         st.plotly_chart(fig_dist, use_container_width=True)
