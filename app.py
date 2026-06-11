@@ -9,7 +9,7 @@ st.title("🤖 Student Predictor - Intelligenza Artificiale")
 # Carichiamo il file di allenamento in modo super veloce
 @st.cache_data
 def carica_e_allena():
-    train_df = pd.read_csv("train.csv")
+    train_df = pd.read_csv("train_leggero.csv")
     
     # Rimuoviamo l'ID se presente
     if 'id' in train_df.columns:
