@@ -132,7 +132,6 @@ modello_rf, modello_lr, rmse_rf, rmse_lr = train_models(X_train, X_test, y_train
 # ==========================================
 # 5. CREAZIONE STRUTTURA A SCHEDE (TABS)
 # ==========================================
-# RIGHE CORETTE E CHIUSE AL MILLIMETRO QUI SOTTO:
 tab1, tab2, tab3 = st.tabs(["📊 Exploratory Data Analysis (EDA)", "🔮 Predictor Dashboard", "📈 Performance Modelli"])
 
 # ------------------------------------------
@@ -193,4 +192,73 @@ with tab2:
             in_presenza = st.slider("Frequenza Lezioni %", 0.0, 100.0, 80.0, step=1.0)
             in_qualita_sonno = st.selectbox("Qualità del Sonno", opzioni_menu.get('sleep_quality', ['good', 'average', 'poor']))
         with c4:
-            in_ore
+            in_ore_sonno = st.slider("Ore Sonno Notturne", 4.0, 12.0, 7.0, step=0.5)
+            in_metodo = st.selectbox("Metodo di Studio", opzioni_menu.get('study_method', ['self-study', 'group study']))
+            
+    if st.button("🚀 CALCOLA PREVISIONE IN TEMPO REALE", use_container_width=True):
+        # VARIABILE CORRETTA QUI SOTTO: in_ore_studio al posto del vecchio in_ore tagliato
+        dati_simulati = {
+            'age': in_eta, 'gender': in_genere, 'course': in_corso, 'study_hours': in_ore_studio,
+            'class_attendance': in_presenza, 'sleep_hours': in_ore_sonno, 'sleep_quality': in_qualita_sonno,
+            'study_method': in_metodo, 'Carico_Totale_Ore': in_ore_studio + in_ore_sonno
+        }
+        input_user_df = pd.DataFrame([dati_simulati])
+        
+        for col in input_user_df.columns:
+            if col in codici_categorie:
+                valore = str(input_user_df[col].iloc[0]).strip()
+                lista_cat = list(codici_categorie[col])
+                input_user_df[col] = lista_cat.index(valore) if valore in lista_cat else 0
+                
+        input_user_df = input_user_df.reindex(columns=X.columns, fill_value=0)
+        voto_predetto = modello_rf.predict(input_user_df)[0]
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+        col_res, col_feat = st.columns([1, 1], gap="large")
+        
+        with col_res:
+            st.markdown("### 🎯 Verdetto Predittivo")
+            st.metric(label="Voto Finale Stimato", value=f"{voto_predetto:.2f} / 100")
+            if voto_predetto >= 70:
+                st.success("Rendimento Elevato: Ottima proiezione accademica.")
+            elif voto_predetto >= 50:
+                st.warning("Rendimento Medio: Margini di miglioramento stabili.")
+            else:
+                st.error("Rendimento Critico: Si consiglia di rivedere la pianificazione delle ore.")
+                
+        with col_feat:
+            st.markdown("### 📊 Feature Importance (I 3 fattori principali)")
+            importanze = modello_rf.feature_importances_
+            df_features = pd.DataFrame({'Fattore': X.columns, 'Importanza': importanze})
+            top_3 = df_features.sort_values(by='Importanza', ascending=True).head(3)
+            
+            fig_bar = px.bar(top_3, x='Importanza', y='Fattore', orientation='h', color='Importanza', color_continuous_scale='Viridis')
+            fig_bar.update_layout(title_text="I 3 fattori chiave che influenzano di più il voto finale", title_x=0.5, showlegend=False)
+            st.plotly_chart(fig_bar, use_container_width=True)
+
+# ------------------------------------------
+# SCHEDA 3: PERFORMANCE MODELLI
+# ------------------------------------------
+with tab3:
+    st.markdown("<h2 style='font-size:22px; font-weight:bold; margin-top:0px;'>Validazione e Confronto Algoritmi</h2>", unsafe_allow_html=True)
+    
+    col_mod1, col_mod2 = st.columns(2)
+    with col_mod1:
+        with st.container(border=True):
+            st.markdown("<p style='font-size:18px; font-weight:bold;'>🌲 Approccio 1: Random Forest</p>", unsafe_allow_html=True)
+            st.metric(label="Errore Medio (RMSE)", value=f"{rmse_rf:.4f}")
+    with col_mod2:
+        with st.container(border=True):
+            st.markdown("<p style='font-size:18px; font-weight:bold;'>📈 Approccio 2: Regressione Lineare</p>", unsafe_allow_html=True)
+            st.metric(label="Errore Medio (RMSE)", value=f"{rmse_lr:.4f}")
+            
+    st.markdown("---")
+    differenza_calcolata = abs(rmse_lr - rmse_rf)
+    if rmse_rf < rmse_lr:
+        st.info(f"Il modello **Random Forest** registra un errore RMSE inferiore di **{differenza_calcolata:.4f}** punti.")
+    else:
+        st.info("L'algoritmo **Regressione Lineare** risulta più performante o equivalente.")
+
+st.markdown("<br><br>", unsafe_allow_html=True)
+with st.expander("📊 Ispeziona un'anteprima dei dati storici"):
+    st.dataframe(df_originale.head(10), use_container_width=True)
