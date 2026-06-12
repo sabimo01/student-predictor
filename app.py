@@ -139,7 +139,6 @@ elif st.session_state.page == 'SIM':
         input_df = pd.DataFrame([[in_eta, in_genere, in_corso, in_ore, in_presenza]], columns=X.columns[:5])
         input_df = input_df.reindex(columns=X.columns, fill_value=0)
         
-        # Codifica dei dati per i modelli (PARENTESI CHIUSA CORRETTAMENTE QUI)
         for col in input_df.columns:
             if col in mappature_cat:
                 lista = list(mappature_cat[col])
@@ -154,8 +153,13 @@ elif st.session_state.page == 'SIM':
             </div>
         """, unsafe_allow_html=True)
 
-# --- PAGINA PERFORMANCE ---
+# --- PAGINA PERFORMANCE (RIGA COMPLETA E INTEGRALE QUI) ---
 elif st.session_state.page == 'PERF':
     st.markdown("<p class='section-title'>Qualità dei Modelli</p>", unsafe_allow_html=True)
     st.metric("Accuratezza RF (Errore)", f"{rmse_rf:.4f}")
-    st.metric("Accuratezza LR (Errore)", f"{rmse_lr:.4
+    st.metric("Accuratezza LR (Errore)", f"{rmse_lr:.4f}")
+    st.info("Più basso è l'errore, più il modello è preciso.")
+
+st.write("---")
+with st.expander("Ispeziona Dati"):
+    st.dataframe(df_orig.head(5))
