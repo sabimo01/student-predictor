@@ -24,19 +24,26 @@ st.set_page_config(
 # ==========================================
 st.markdown("""
     <style>
-        # /* Palette Colori e Tema */ :root { --primary: #2979FF; --secondary: #1C2B4C; --accent: #FF5252; --bg-main: #F7F9FC; --bg-card: #FFFFFF; --text: #1C2B4C; }
-        # /* Reset Base e Background */ .stApp { background-color: var(--bg-main); color: var(--text); font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
-        # /* Nascondi Menu Streamlit per Mobile */ #MainMenu, footer, header { visibility: hidden; }
-        # /* --- HEADER GRAFICO MOBILE --- */ .mobile-header { width: 100%; border-radius: 0 0 25px 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); } .mobile-header-text { margin-top: -60px; /* Alza il testo sopra l'header */ }
-        # /* Titolo e Sottotitolo */ .main-title { font-size: 30px; font-weight: bold; color: var(--secondary); margin-bottom: 5px; margin-top: 0px;} .main-subtitle { font-size: 15px; color: rgba(28,43,76,0.7); margin-bottom: 20px; margin-top: 0px;}
-        # /* --- LAYOUT CARD --- */ .data-profiling-title { font-size: 18px; font-weight: bold; color: var(--secondary); margin-bottom: 10px; margin-top: 15px;} .stMetric { background-color: var(--bg-card); border-radius: 15px; padding: 15px; border: 1px solid rgba(0,0,0,0.03); margin-bottom: 10px; text-align: left;} .stMetric > div { color: rgba(28,43,76,0.5); font-size: 13px !important;} .stMetric > div:first-child + div { color: var(--secondary); font-size: 32px !important; font-weight: bold !important;}
-        # /* Dataframe Card */ .stDataFrame { background-color: var(--bg-card); border-radius: 15px; padding: 5px; border: 1px solid rgba(0,0,0,0.03); margin-top: 10px;}
-        # /* --- SIMULATORE / CARD INPUT --- */ .form-card { background-color: var(--bg-card); border-radius: 20px; padding: 20px; border: 1px solid rgba(0,0,0,0.03); box-shadow: 0 2px 6px rgba(0,0,0,0.02);} .input-form-header { font-size: 18px; font-weight: bold; color: var(--secondary); margin-top: 0px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;} .input-form-icon { font-size: 20px; }
-        # /* Label Input */ .stSelectbox > label, .stSlider > label, .stNumberInput > label { color: rgba(28,43,76,0.7); font-size: 14px; margin-bottom: 0px;}
-        # /* Slider Grande e Primary */ .stSlider > div { margin-top: -10px;} .stSlider input[type=range] { color: var(--primary) !important; height: 10px;}
-        # /* Pulsante Mobile Grande accent */ .stButton > button { background-color: var(--accent) !important; color: white !important; font-size: 18px !important; font-weight: bold !important; border-radius: 25px !important; height: 50px !important; border: none !important; box-shadow: 0 4px 10px rgba(255,82,82,0.3) !important; transition: transform 0.1s;} .stButton > button:active { transform: scale(0.98);}
-        # /* --- TABS MOBILE SUPER PULITI --- */ div.stTabs > div > div > button { font-size: 14px !important; color: rgba(28,43,76,0.5) !important; border-radius: 20px 20px 0 0 !important; background-color: transparent !important; border: none !important;} div.stTabs > div > div > button[aria-selected="true"] { color: var(--primary) !important; font-weight: bold !important;} div.stTabs > div > div > button:hover { background-color: rgba(41,121,255,0.03) !important;}
-        # /* Box Utente Loggato */ .st-cx { width: 100px; padding: 8px; border-radius: 12px; font-size: 12px; background-color: rgba(41,121,255,0.05); color: var(--primary); border: 1px solid rgba(41,121,255,0.15);}
+        :root { --primary: #2979FF; --secondary: #1C2B4C; --accent: #FF5252; --bg-main: #F7F9FC; --bg-card: #FFFFFF; --text: #1C2B4C; }
+        .stApp { background-color: var(--bg-main); color: var(--text); font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+        #MainMenu, footer, header { visibility: hidden; }
+        .mobile-header-text { margin-top: -60px; }
+        .main-title { font-size: 30px; font-weight: bold; color: var(--secondary); margin-bottom: 5px; margin-top: 0px;} 
+        .main-subtitle { font-size: 15px; color: rgba(28,43,76,0.7); margin-bottom: 20px; margin-top: 0px;}
+        .data-profiling-title { font-size: 18px; font-weight: bold; color: var(--secondary); margin-bottom: 10px; margin-top: 15px;} 
+        .stMetric { background-color: var(--bg-card); border-radius: 15px; padding: 15px; border: 1px solid rgba(0,0,0,0.03); margin-bottom: 10px; text-align: left;} 
+        .stMetric > div { color: rgba(28,43,76,0.5); font-size: 13px !important;} 
+        .stMetric > div:first-child + div { color: var(--secondary); font-size: 32px !important; font-weight: bold !important;}
+        .stDataFrame { background-color: var(--bg-card); border-radius: 15px; padding: 5px; border: 1px solid rgba(0,0,0,0.03); margin-top: 10px;}
+        .stSelectbox > label, .stSlider > label, .stNumberInput > label { color: rgba(28,43,76,0.7); font-size: 14px; margin-bottom: 0px;}
+        .stSlider > div { margin-top: -10px;} 
+        .stSlider input[type=range] { color: var(--primary) !important; height: 10px;}
+        .stButton > button { background-color: var(--accent) !important; color: white !important; font-size: 18px !important; font-weight: bold !important; border-radius: 25px !important; height: 50px !important; border: none !important; box-shadow: 0 4px 10px rgba(255,82,82,0.3) !important; transition: transform 0.1s;} 
+        .stButton > button:active { transform: scale(0.98);}
+        div.stTabs > div > div > button { font-size: 14px !important; color: rgba(28,43,76,0.5) !important; border-radius: 20px 20px 0 0 !important; background-color: transparent !important; border: none !important;} 
+        div.stTabs > div > div > button[aria-selected="true"] { color: var(--primary) !important; font-weight: bold !important;} 
+        div.stTabs > div > div > button:hover { background-color: rgba(41,121,255,0.03) !important;}
+        .st-cx { width: 100px; padding: 8px; border-radius: 12px; font-size: 12px; background-color: rgba(41,121,255,0.05); color: var(--primary); border: 1px solid rgba(41,121,255,0.15);}
     </style>
 """, unsafe_allow_html=True)
 
@@ -49,7 +56,6 @@ if "username_loggato" not in st.session_state:
     st.session_state["username_loggato"] = ""
 
 if not st.session_state["authenticated"]:
-    # Login più pulito per mobile
     st.markdown("""
         <div style="text-align: center; margin-top: 30px; background-color: #FFFFFF; padding: 30px; border-radius: 20px; border: 1px solid rgba(0,0,0,0.03); box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
             <h2 style="margin: 0; color: #1C2B4C; font-size: 26px;">🔒 Accesso Pro</h2>
@@ -76,18 +82,15 @@ if not st.session_state["authenticated"]:
 # ==========================================
 # 4. INTERFACCIA HEADER MOBILE (POST-LOGIN)
 # ==========================================
-# HEADER GRAFICO (Immagine mobile)
 header_img_col = st.columns([1])[0]
 with header_img_col:
     if os.path.exists("header_mobile.png"):
-        st.image("header_mobile.png", class_="mobile-header", use_container_width=True)
+        st.image("header_mobile.png", use_container_width=True)
     else:
-        # Se manca l'immagine, usiamo un placeholder sfumato per non lasciare vuoto
         st.markdown("""
-            <div style="width: 100%; height: 180px; background: linear-gradient(135deg, #2979FF 0%, #1C2B4C 100%); border-radius: 0 0 25px 25px;"></div>
+            <div style="width: 100%; height: 140px; background: linear-gradient(135deg, #2979FF 0%, #1C2B4C 100%); border-radius: 0 0 25px 25px;"></div>
         """, unsafe_allow_html=True)
 
-# Testo Header sopra l'immagine
 header_text_col = st.columns([1])[0]
 with header_text_col:
     col_t1, col_u1 = st.columns([4, 1])
@@ -99,7 +102,6 @@ with header_text_col:
             </div>
         """, unsafe_allow_html=True)
     with col_u1:
-        # User Badge più compatto
         st.write(f'<div class="st-cx">Utente: {st.session_state["username_loggato"]}</div>', unsafe_allow_html=True)
 
 st.markdown("---")
@@ -168,7 +170,6 @@ modello_rf, modello_lr, rmse_rf, rmse_lr = train_models(X_train, X_test, y_train
 # ==========================================
 # 6. CREAZIONE STRUTTURA TABS MOBILE SUPER PULITI
 # ==========================================
-# Sostituiamo gli emoji con icone più professionali (punti) per mobile
 tab1, tab2, tab3 = st.tabs(["● EDA", "● Simulatore", "● Performance"])
 
 # ------------------------------------------
@@ -178,7 +179,6 @@ with tab1:
     st.markdown("<h2 class='data-profiling-title'>Analisi Esplorativa (EDA)</h2>", unsafe_allow_html=True)
     st.markdown("<p style='font-size:16px; font-weight:bold; color:#1C2B4C; margin-bottom:10px;'>Data Profiling</p>", unsafe_allow_html=True)
     
-    # CARD LAYOUT PER LE METRICHE (Verticale su Mobile)
     with st.container():
         st.metric("Numero Totale Righe", df_originale.shape[0])
         st.metric("Numero di Colonne", df_originale.shape[1])
@@ -187,7 +187,6 @@ with tab1:
         
     st.markdown("---")
     
-    # Grafici Mobile-First
     st.markdown("<p style='font-size:16px; font-weight:bold; color:#1C2B4C;'>● Heatmap Correlazioni</p>", unsafe_allow_html=True)
     corr_matrix = df_elaborato.select_dtypes(include=[np.number]).corr()
     
@@ -218,31 +217,80 @@ with tab1:
 with tab2:
     st.markdown("<h2 class='data-profiling-title'>Simulatore Predittivo Real-Time</h2>", unsafe_allow_html=True)
     
-    # ENCAPSULIAMO TUTTO IL FORM IN UNA CARD VISIBILE
     with st.container():
-        # Usiamo il CSS per creare la card
-        st.markdown('<div class="form-card">', unsafe_allow_html=True)
+        st.markdown("<p style='font-size: 16px; font-weight: bold; color: #1C2B4C;'>📝 Input Form: Profilo Studente</p>", unsafe_allow_html=True)
         
-        # Titolo form rimpicciolito ed elegante
-        st.markdown('<div class="input-form-header">📝 Input Form: Profilo Studente</div>', unsafe_allow_html=True)
-        
-        # Inputs Mobile-Friendly (Verticali)
         in_eta = st.number_input("Età Anagrafica", min_value=15, max_value=90, value=20, format="%d")
         in_genere = st.selectbox("Genere", opzioni_menu.get('gender', ['male', 'female']))
         in_corso = st.selectbox("Corso Frequentato", opzioni_menu.get('course', ['b.tech', 'b.sc', 'b.com']))
         
-        # Slider Grandi per Mobile
         in_ore_studio = st.slider("Ore di Studio Giorni", 0.0, 12.0, 4.0, step=0.5)
         in_presenza = st.slider("Frequenza Lezioni %", 0.0, 100.0, 80.0, step=1.0)
         in_qualita_sonno = st.selectbox("Qualità del Sonno", opzioni_menu.get('sleep_quality', ['good', 'average', 'poor']))
         in_ore_sonno = st.slider("Ore Sonno Notturne", 4.0, 12.0, 7.0, step=0.5)
         in_metodo = st.selectbox("Metodo di Studio", opzioni_menu.get('study_method', ['self-study', 'group study']))
         
-        # Chiudiamo il div della form-card
-        st.markdown('</div>', unsafe_allow_html=True)
-        st.markdown("<br>", unsafe_allow_html=True)
-            
-    # Pulsante Mobile Grande
+    st.markdown("<br>", unsafe_allow_html=True)
     submit_sim = st.button("🚀 CALCOLA PREVISIONE", use_container_width=True)
 
     if submit_sim:
+        dati_simulati = {
+            'age': in_eta, 'gender': in_genere, 'course': in_corso, 'study_hours': in_ore_studio,
+            'class_attendance': in_presenza, 'sleep_hours': in_ore_sonno, 'sleep_quality': in_qualita_sonno,
+            'study_method': in_metodo, 'Carico_Totale_Ore': in_ore_studio + in_ore_sonno
+        }
+        input_user_df = pd.DataFrame([dati_simulati])
+        
+        for col in input_user_df.columns:
+            if col in codici_categorie:
+                valore = str(input_user_df[col].iloc[0]).strip()
+                lista_cat = list(codici_categorie[col])
+                input_user_df[col] = lista_cat.index(valore) if valore in lista_cat else 0
+                
+        input_user_df = input_user_df.reindex(columns=X.columns, fill_value=0)
+        voto_predetto = modello_rf.predict(input_user_df)[0]
+        
+        with st.container():
+            st.markdown("""
+                <div style="background-color: #FFFFFF; padding: 20px; border-radius: 20px; margin-top:10px; border: 1px solid rgba(0,0,0,0.03);">
+                    <p style="color: rgba(28,43,76,0.7); font-size:14px; margin:0;">🎯 Verdetto Predittivo</p>
+                    <p style="color: #1C2B4C; font-size: 32px; font-weight: bold; margin: 5px 0 10px 0;">{pred:.2f} / 100</p>
+                </div>
+            """.format(pred=voto_predetto), unsafe_allow_html=True)
+            
+            if voto_predetto >= 70:
+                st.success("Rendimento Elevato: Ottima proiezione accademica.")
+            elif voto_predetto >= 50:
+                st.warning("Rendimento Medio: Margini di miglioramento stabili.")
+            else:
+                st.error("Rendimento Critico: Si consiglia di rivedere la pianificazione.")
+                
+        with st.container():
+            st.markdown("<p style='font-size:16px; font-weight:bold; color:#1C2B4C; margin-top:20px;'>● Feature Importance (Top 3)</p>", unsafe_allow_html=True)
+            importanze = modello_rf.feature_importances_
+            df_features = pd.DataFrame({'Fattore': X.columns, 'Importanza': importanze})
+            top_3 = df_features.sort_values(by='Importanza', ascending=True).head(3)
+            
+            fig_bar = px.bar(top_3, x='Importanza', y='Fattore', orientation='h', color='Importanza', color_continuous_scale='Viridis')
+            fig_bar.update_layout(margin=dict(l=20, r=20, t=10, b=20), xaxis_title="Importanza", yaxis_title="")
+            st.plotly_chart(fig_bar, use_container_width=True, config={'displayModeBar': False})
+
+# ------------------------------------------
+# SCHEDA 3: PERFORMANCE MODELLI
+# ------------------------------------------
+with tab3:
+    st.markdown("<h2 class='data-profiling-title'>Performance dei Modelli</h2>", unsafe_allow_html=True)
+    
+    with st.container():
+        st.markdown("<p style='font-size:18px; font-weight:bold; color:#1C2B4C;'>Approccio 1: Random Forest</p>", unsafe_allow_html=True)
+        st.metric("Errore RMSE", f"{rmse_rf:.4f}")
+        
+        st.markdown("<p style='font-size:18px; font-weight:bold; color:#1C2B4C; margin-top:20px;'>Approccio 2: Linear Regression</p>", unsafe_allow_html=True)
+        st.metric("Errore RMSE", f"{rmse_lr:.4f}")
+            
+    st.markdown("---")
+    st.info(f"Il modello Random Forest registra un errore inferiore di **{abs(rmse_lr - rmse_rf):.4f}** punti.")
+
+st.markdown("<br>", unsafe_allow_html=True)
+with st.expander("Ispeziona un'anteprima dei dati storici"):
+    st.dataframe(df_originale.head(10), use_container_width=True)
