@@ -38,4 +38,33 @@ with t1:
     g1, g2 = st.columns(2)
     with g1: st.plotly_chart(px.imshow(df_e.select_dtypes(include=[np.number]).corr(), text_auto='.2f', color_continuous_scale='Blugrn').update_layout(height=300), use_container_width=True)
     with g2: st.plotly_chart(px.histogram(df, x=df.columns[-1], color_discrete_sequence=['#FF6F61']).update_layout(height=300), use_container_width=True)
-        
+        with t2:
+    st.subheader("Simulatore Real-Time")
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        v_ag = st.number_input("Età", 15, 90, 20)
+        v_ge = st.selectbox("Genere", mp.get('gender', ['male', 'female']))
+        v_co = st.selectbox("Corso", mp.get('course', ['b.tech', 'b.sc', 'b.com']))
+        v_me = st.selectbox("Metodo Studio", mp.get('study_method', ['online videos', 'textbooks']))
+    with c2:
+        v_ho = st.slider("Ore Studio", 0.0, 16.0, 4.0, step=0.5)
+        v_at = st.slider("Presenza %", 0.0, 100.0, 80.0, step=1.0)
+        v_it = st.selectbox("Internet", mp.get('internet_access', ['yes', 'no']))
+        v_di = st.selectbox("Difficoltà Esame", mp.get('exam_difficulty', ['medium', 'low', 'high']))
+    with c3:
+        v_sl = st.slider("Ore Sonno", 3.0, 14.0, 7.0, step=0.5)
+        v_sq = st.selectbox("Qualità Sonno", mp.get('sleep_quality', ['good', 'average', 'poor']))
+        v_fa = st.slider("Valutazione Struttura", 1, 5, 3)
+    if st.button("🔮 CALCOLA PREVISIONE", use_container_width=True):
+        m_in = {'age':v_ag, 'gender':v_ge, 'course':v_co, 'study_hours':v_ho, 'class_attendance':v_at, 'internet_access':v_it, 'sleep_hours':v_sl, 'sleep_quality':v_sq, 'study_method':v_me, 'facility_rating':v_fa, 'exam_difficulty':v_di}
+        row = {col: m_in.get(col.lower().strip(), 0) for col in X.columns}
+        in_df = pd.DataFrame([row]).reindex(columns=X.columns, fill_value=0)
+        for col in in_df.columns:
+            if col in mp:
+                ls = list(mp[col])
+                v_s = str(in_df[col].iloc[0]).strip()
+                in_df[col] = ls.index(v_s) if v_s in ls else 0
+        voto = m_rf.predict(in_df)[0]
+        st.markdown(f'<div style="background:white;padding:15px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,0.05);text-align:center;border-top:4px solid #1E3A8A;"><p style="color:#64748B;margin:0;">🎯 Voto Stimato AI</p><h2 style="color:#1E3A8A;margin:0;">{voto:.2f} / 100</h2></div>', unsafe_allow_html=True)
+st.write("---")
+with st.expander("🔍 Dati Storici"): st.dataframe(df.head(5), use_container_width=True)
