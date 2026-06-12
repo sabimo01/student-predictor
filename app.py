@@ -19,25 +19,23 @@ st.set_page_config(
     page_icon="🎓"
 )
 
-# Stato della pagina mobile stabile
+# Stato della navigazione mobile
 if 'page' not in st.session_state:
     st.session_state.page = 'EDA'
 
-# Funzione per caricare il logo in modo sicuro senza rompere il layout
+# Funzione per convertire il logo in formato sicuro
 def get_image_base64(path):
     with open(path, "rb") as image_file:
         return base64.b64encode(image_file.read()).decode()
 
 # ==========================================
-# 2. CSS INTEGRALE - BLINDATO PER SCHERMI MOBILE
+# 2. CSS INTEGRALE PER IL LAYOUT MOBILE
 # ==========================================
 st.markdown("""
     <style>
-        /* Reset globale antistrecciamento mobile */
         .stApp { background-color: #FFFFFF; font-family: 'Helvetica Neue', sans-serif; }
         #MainMenu, footer, header, div[data-testid="stHeader"] { visibility: hidden; display: none !important; }
         
-        /* BANNER HEADER CON GRADIENTE */
         .header-container { 
             background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 100%); 
             padding: 20px; 
@@ -48,7 +46,7 @@ st.markdown("""
         } 
         .header-title { color: white !important; font-size: 20px !important; font-weight: 700; margin: 8px 0 0 0 !important; }
         
-        /* CORREZIONE STRUTTURALE COLONNE: Calcolo esatto per non farle uscire dallo schermo */
+        /* Forza le colonne dei tre bottoni a rimanere affiancate su mobile */
         div[data-testid="stHorizontalBlock"] {
             display: flex !important;
             flex-direction: row !important;
@@ -64,10 +62,9 @@ st.markdown("""
             text-align: center !important;
         }
         
-        /* STILE BOTTONI NAVIGAZIONE RIGIDI DENTRO IL DISPLAY */
         .nav-button-container { text-align: center; width: 100%; } 
         .stButton > button { 
-            width: 100% !important; /* Prende lo spazio esatto del 33% assegnato */
+            width: 100% !important; 
             max-width: 80px !important;
             height: 75px !important; 
             border-radius: 18px !important; 
@@ -81,11 +78,9 @@ st.markdown("""
         } 
         .nav-hint { font-size: 11px !important; font-weight: 700; color: #5A6D88; margin-top: 6px; text-transform: uppercase; line-height: 1.2; }
         
-        /* TITOLI SEZIONI PICCOLI (Richiesta 3 esaudita) */
         .section-title { font-size: 18px !important; font-weight: 700 !important; color: #1C2B4C; margin: 15px 0 5px 0 !important; } 
         .section-subtitle { font-size: 13px !important; color: #5A6D88; margin-bottom: 15px !important; }
         
-        /* Card per le metriche affiancate */
         .stMetric { background-color: #F8FAFC; border-radius: 14px; border: 1px solid #E2E8F0; padding: 12px; }
         .form-card { background-color: #F8FAFC; border-radius: 14px; padding: 18px; border: 1px solid #E2E8F0; margin-bottom: 12px; }
     </style>
@@ -111,7 +106,7 @@ else:
 st.markdown(html_header, unsafe_allow_html=True)
 
 # ==========================================
-# 4. NAVIGAZIONE ORIZZONTALE (PROPORZIONATA MOBILE)
+# 4. NAVIGAZIONE ORIZZONTALE MOBILE
 # ==========================================
 col1, col2, col3 = st.columns(3)
 
@@ -219,14 +214,4 @@ elif st.session_state.page == 'SIM':
         st.markdown(f"""
             <div style="background-color: #F1F5F9; padding: 20px; border-radius: 15px; text-align: center; border: 1px solid #CBD5E1; margin-top: 15px;">
                 <p style="color: #5A6D88; margin:0; font-size:13px;">Voto Finale Stimato</p>
-                <p style="color: #1E3A8A; font-size: 35px; font-weight: bold; margin:5px 0 0 0;">{voto:.2f} / 100</p>
-            </div>
-        """, unsafe_allow_html=True)
-
-# --- PAGINA 3: PERFORMANCE ---
-elif st.session_state.page == 'PERF':
-    st.markdown("<p class='section-title'>Affidabilità Algoritmi</p>", unsafe_allow_html=True)
-    
-    p1, p2 = st.columns(2)
-    with p1:
-        st.
+                <p style="color: #1E3A8A; font-size: 35px;
