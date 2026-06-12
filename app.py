@@ -275,6 +275,22 @@ with tab2:
 with tab3:
     st.markdown("<h2 class='data-profiling-title'>Performance dei Modelli</h2>", unsafe_allow_html=True)
     
-    with st.container():
-        st.markdown("<p style='font-size:16px; font-weight:bold; color:#1C2B4C;'>Approccio 1: Random Forest</p>", unsafe_allow_html=True)
-        st.metric
+    # Primo modello
+    st.markdown("<p style='font-size:16px; font-weight:bold; color:#1C2B4C; margin-bottom:5px;'>Approccio 1: Random Forest</p>", unsafe_allow_html=True)
+    st.metric(label="Errore Medio RMSE", value=f"{rmse_rf:.4f}")
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # Secondo modello
+    st.markdown("<p style='font-size:16px; font-weight:bold; color:#1C2B4C; margin-bottom:5px;'>Approccio 2: Linear Regression</p>", unsafe_allow_html=True)
+    st.metric(label="Errore Medio RMSE", value=f"{rmse_lr:.4f}")
+            
+    st.markdown("---")
+    
+    # Calcolo differenza informativo
+    differenza_calcolata = abs(rmse_lr - rmse_rf)
+    st.info(f"Il modello Random Forest registra un errore inferiore di **{differenza_calcolata:.4f}** punti rispetto alla Regressione Lineare.")
+
+st.markdown("<br><br>", unsafe_allow_html=True)
+with st.expander("Ispeziona un'anteprima dei dati storici"):
+    st.dataframe(df_originale.head(10), use_container_width=True)
