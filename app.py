@@ -20,7 +20,7 @@ st.set_page_config(
 )
 
 # ==========================================
-# 2. CSS PERSONALIZZATO PER DETTAGLI GRAFICI
+# 2. CSS PERSONALIZZATO PER UN LOOK APPLICAZIONE REALE
 # ==========================================
 st.markdown("""
     <style>
@@ -28,26 +28,31 @@ st.markdown("""
         .stApp { background-color: var(--primary-bg); color: var(--text-dark); font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
         #MainMenu, footer, header { visibility: hidden; }
         
-        /* Box info header */
-        .header-box { background: linear-gradient(135deg, #1C2B4C 0%, #2979FF 100%); padding: 20px; border-radius: 0 0 20px 20px; color: white; margin-bottom: 20px; }
-        .main-title { font-size: 24px !important; font-weight: bold !important; color: #FFFFFF !important; margin: 0 0 5px 0 !important; } 
-        .main-subtitle { font-size: 13px !important; color: rgba(255,255,255,0.8) !important; margin: 0 0 15px 0 !important; }
+        /* Banner geometrico moderno in CSS puro */
+        .header-box { 
+            background: linear-gradient(135deg, #0F1A30 0%, #1C2B4C 50%, #2979FF 100%); 
+            padding: 30px 20px; 
+            border-radius: 0 0 25px 25px; 
+            color: white; 
+            margin-bottom: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .main-title { font-size: 26px !important; font-weight: bold !important; color: #FFFFFF !important; margin: 0 0 5px 0 !important; } 
+        .main-subtitle { font-size: 13px !important; color: rgba(255,255,255,0.75) !important; margin: 0 0 15px 0 !important; }
         
-        .st-cx { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 20px; font-size: 12px; background-color: rgba(255,255,255,0.2); color: white; } 
+        .st-cx { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 12px; background-color: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.1); } 
         .user-dot { width: 8px; height: 8px; border-radius: 50%; background-color: var(--success-dot); }
         
-        /* Card e metriche */
+        /* Struttura Card pulite */
         .data-profiling-title { font-size: 18px; font-weight: bold; color: var(--text-dark); margin: 15px 0 10px 0; } 
-        .stMetric { background-color: #F8FAFC; border-radius: 14px; padding: 15px; border: 1px solid rgba(0,0,0,0.04); margin-bottom: 10px; } 
+        .stMetric { background-color: #F8FAFC; border-radius: 16px; padding: 18px; border: 1px solid rgba(0,0,0,0.04); margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.01); } 
+        .form-card { background-color: #F8FAFC; border-radius: 16px; padding: 20px; border: 1px solid rgba(0,0,0,0.04); margin-bottom: 15px; }
         
-        /* Contenitore Input Form */
-        .form-card { background-color: #F8FAFC; border-radius: 14px; padding: 15px; border: 1px solid rgba(0,0,0,0.04); margin-bottom: 15px; }
+        /* Bottone grande stile iOS/Android */
+        .stButton > button { background-color: var(--accent) !important; color: white !important; font-size: 16px !important; font-weight: bold !important; border-radius: 22px !important; height: 50px !important; border: none !important; box-shadow: 0 4px 10px rgba(41,121,255,0.2) !important; margin-top: 10px; }
         
-        /* Pulsante personalizzato grande */
-        .stButton > button { background-color: var(--accent) !important; color: white !important; font-size: 16px !important; font-weight: bold !important; border-radius: 20px !important; height: 48px !important; border: none !important; margin-top: 10px; }
-        
-        /* Stile per i Tab nativi più puliti */
-        div.stTabs > div > div > button { font-size: 14px !important; }
+        /* Sistemazione Tab */
+        div.stTabs > div > div > button { font-size: 14px !important; font-weight: 500; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -84,20 +89,15 @@ if not st.session_state["authenticated"]:
     st.stop()
 
 # ==========================================
-# 4. INTERFACCIA HEADER MOBILE (POST-LOGIN)
+# 4. INTERFACCIA HEADER GENERATA IN CSS
 # ==========================================
-# Carichiamo l'immagine usando il widget nativo di Streamlit per evitare bug di percorsi HTML
-if os.path.exists("header_mobile.png"):
-    st.image("header_mobile.png", use_container_width=True)
-
-# Sotto l'immagine stampiamo il blocco dei testi ben formattato
 st.markdown("""
     <div class="header-box">
         <h1 class="main-title">Student Predictor AI</h1>
         <p class="main-subtitle">Analisi e Modellazione Predittiva Carriere</p>
-        <div class="st-cx"><div class="user-dot"></div>Utente: {user}</div>
+        <div class="st-cx"><div class="user-dot"></div>Piattaforma Online • {user}</div>
     </div>
-""".format(user=st.session_state["username_loggato"]), unsafe_allow_html=True)
+""".format(user=st.session_state["username_loggato"].upper()), unsafe_allow_html=True)
 
 # ==========================================
 # 5. PIPELINE DI PREPROCESSING & FEATURE ENGINEERING
@@ -106,10 +106,8 @@ st.markdown("""
 def load_and_preprocess_data():
     nome_file_csv = "train_leggero.csv" if os.path.exists("train_leggero.csv") else "train.csv"
     df = pd.read_csv(nome_file_csv)
-    
     if 'id' in df.columns:
         df = df.drop(columns=['id'])
-        
     df = df.drop_duplicates()
     
     colonne_testo = df.select_dtypes(include=['object']).columns
@@ -161,7 +159,7 @@ def train_models(X_t, X_v, y_t, y_v):
 modello_rf, modello_lr, rmse_rf, rmse_lr = train_models(X_train, X_test, y_train, y_test)
 
 # ==========================================
-# 6. STRUTTURA TABS CON EMOJI NATIVI (PULITI PER MOBILE)
+# 6. STRUTTURA TABS CON EMOJI NATIVI
 # ==========================================
 tab1, tab2, tab3 = st.tabs(["📊 EDA", "🔮 Simulatore", "📈 Performance"])
 
@@ -170,7 +168,6 @@ tab1, tab2, tab3 = st.tabs(["📊 EDA", "🔮 Simulatore", "📈 Performance"])
 # ------------------------------------------
 with tab1:
     st.markdown("<h2 class='data-profiling-title'>Analisi Esplorativa (EDA)</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='font-size:16px; font-weight:bold; color:#1C2B4C;'>Data Profiling</p>", unsafe_allow_html=True)
     
     with st.container():
         st.metric("Numero Totale Righe", df_originale.shape[0])
@@ -191,8 +188,7 @@ with tab1:
     )
     fig_heat.update_layout(
         margin=dict(l=10, r=10, t=30, b=10),
-        coloraxis_colorbar_len=0.7,
-        title_text='Mappa Interattiva', title_x=0.5
+        coloraxis_colorbar_len=0.7
     )
     st.plotly_chart(fig_heat, use_container_width=True, config={'displayModeBar': False})
     
@@ -210,7 +206,6 @@ with tab1:
 with tab2:
     st.markdown("<h2 class='data-profiling-title'>Simulatore Predittivo Real-Time</h2>", unsafe_allow_html=True)
     
-    # Card contenitore per gli input
     st.markdown('<div class="form-card">', unsafe_allow_html=True)
     st.markdown('<p style="font-size: 15px; font-weight: bold; color: #1C2B4C; margin-bottom: 15px;">📝 Input Form: Profilo Studente</p>', unsafe_allow_html=True)
     
@@ -275,21 +270,16 @@ with tab2:
 with tab3:
     st.markdown("<h2 class='data-profiling-title'>Performance dei Modelli</h2>", unsafe_allow_html=True)
     
-    # Primo modello
-    st.markdown("<p style='font-size:16px; font-weight:bold; color:#1C2B4C; margin-bottom:5px;'>Approccio 1: Random Forest</p>", unsafe_allow_html=True)
-    st.metric(label="Errore Medio RMSE", value=f"{rmse_rf:.4f}")
-    
-    st.markdown("<br>", unsafe_allow_html=True)
-    
-    # Secondo modello
-    st.markdown("<p style='font-size:16px; font-weight:bold; color:#1C2B4C; margin-bottom:5px;'>Approccio 2: Linear Regression</p>", unsafe_allow_html=True)
-    st.metric(label="Errore Medio RMSE", value=f"{rmse_lr:.4f}")
+    with st.container():
+        st.markdown("<p style='font-size:16px; font-weight:bold; color:#1C2B4C;'>Approccio 1: Random Forest</p>", unsafe_allow_html=True)
+        st.metric("Errore RMSE", f"{rmse_rf:.4f}")
+        
+        st.markdown("<p style='font-size:16px; font-weight:bold; color:#1C2B4C; margin-top:20px;'>Approccio 2: Linear Regression</p>", unsafe_allow_html=True)
+        st.metric("Errore RMSE", f"{rmse_lr:.4f}")
             
     st.markdown("---")
-    
-    # Calcolo differenza informativo
     differenza_calcolata = abs(rmse_lr - rmse_rf)
-    st.info(f"Il modello Random Forest registra un errore inferiore di **{differenza_calcolata:.4f}** punti rispetto alla Regressione Lineare.")
+    st.info(f"Il modello Random Forest registra un errore inferiore di **{differenza_calcolata:.4f}** punti.")
 
 st.markdown("<br><br>", unsafe_allow_html=True)
 with st.expander("Ispeziona un'anteprima dei dati storici"):
