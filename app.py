@@ -219,4 +219,16 @@ elif st.session_state.page == 'SIM':
         """, unsafe_allow_html=True)
 
 # --- PAGINA 3: PERFORMANCE ---
-elif st.session_state.page == 'PERF
+elif st.session_state.page == 'PERF':
+    st.markdown("<p class='section-title'>Affidabilità Algoritmi</p>", unsafe_allow_html=True)
+    
+    p1, p2 = st.columns(2)
+    with p1:
+        st.metric("Errore Random Forest", f"{rmse_rf:.4f}")
+    with p2:
+        st.metric("Errore Linear Reg.", f"{rmse_lr:.4f}")
+    st.info("I punteggi indicano lo scarto medio. Minore è il valore, più precisa è la stima.")
+
+st.write("---")
+with st.expander("Ispeziona Dati Storici"):
+    st.dataframe(df_orig.head(5), use_container_width=True)
