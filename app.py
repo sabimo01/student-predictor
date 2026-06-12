@@ -141,4 +141,144 @@ def load_and_preprocess_data():
         
     return df, df_encoded, opzioni, mappature
 
-df_orig
+df_orig, df_enc, opzioni_menu, mappature_cat = load_and_preprocess_data()
+target_col = df_enc.columns[-2] if 'Carico_Totale_Ore' in df_enc.columns else df_enc.columns[-1]
+
+X = df_enc.drop(columns=[target_col])
+y = df_enc[target_col]
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# ==========================================
+# 5. ADDESTRAMENTO MODELLI
+# ==========================================
+@st.cache_resource
+def train_models(X_t, X_v, y_t, y_v):
+    rf = RandomForestRegressor(n_estimators=50, max_depth=10, random_state=42, n_jobs=-1)
+    rf.fit(X_t, y_t)
+    rmse_rf = np.sqrt(mean_squared_error(y_v, rf.predict(X_v)))
+    
+    lr = LinearRegression()
+    lr.fit(X_t, y_t)
+    rmse_lr = np.sqrt(mean_squared_error(y_v, lr.predict(X_v)))
+    
+    return rf, lr, rmse_rf, rmse_lr
+
+modello_rf, modello_lr, rmse_rf, rmse_lr = train_models(X_train, X_test, y_train, y_test)
+
+# ==========================================
+# 6. INTERFACCIA GRAFICA & NAVIGAZIONE TAB
+# ==========================================
+st.markdown("""
+    <div class="main-header">
+        <h1>Student Predictor AI</h1>
+        <p>Analisi e Modellazione Predittiva Carriere • Dashboard Mobile</p>
+    </div>
+""", unsafe_allow_html=True)
+
+tab1, tab2, tab3 = st.tabs(["📊 EDA", "🔮 Simulatore", "📈 Performance"])
+
+# ------------------------------------------
+# TAB 1: ANALISI ESPLORATIVA (EDA)
+# ------------------------------------------
+with tab1:
+    st.markdown("<p class='section-title'>Analisi Esplorativa (EDA)</p>", unsafe_allow_html=True)
+    st.markdown("<p class='section-subtitle'>Data Profiling del Dataset</p>", unsafe_allow_html=True)
+    
+    st.metric("Numero Totale Righe", df_orig.shape[0])
+    st.metric("Numero di Colonne", df_orig.shape[1])
+    
+    st.markdown("<p class='section-title'>📊 Mappa delle Correlazioni</p>", unsafe_allow_html=True)
+    corr_matrix = df_enc.select_dtypes(include=[np.number]).corr()
+    fig_heat = px.imshow(corr_matrix, text_auto='.2f', color_continuous_scale='RdBu_r', aspect="auto")
+    fig_heat.update_layout(margin=dict(l=10, r=10, t=10, b=10))
+    st.plotly_chart(fig_heat, use_container_width=True, config={'displayModeBar': False})
+    
+    st.markdown("<p class='section-title'>📊 Distribuzione del Voto Finale</p>", unsafe_allow_html=True)
+    fig_dist = px.histogram(df_orig, x=df_orig.columns[-1], color_discrete_sequence=['#2979FF'])
+    fig_dist.update_layout(margin=dict(l=10, r=10, t=10, b=10), xaxis_title="Punteggio d'Esame", yaxis_title="Frequenza")
+    st.plotly_chart(fig_dist, use_container_width=True, config={'displayModeBar': False})
+
+# ------------------------------------------
+# TAB 2: SIMULATORE PREDITTIVO
+# ------------------------------------------
+with tab2:
+    st.markdown("<p class='section-title'>Simulatore Predittivo Real-Time</p>", unsafe_allow_html=True)
+    
+    st.markdown('<div class="form-card">', unsafe_allow_html=True)
+    st.markdown('<p class="section-subtitle">📝 Inserisci il Profilo dello Studente</p>', unsafe_allow_html=True)
+    
+    in_eta = st.number_input("Età Anagrafica", min_value=15, max_value=90, value=20)
+    in_genere = st.selectbox("Genere", opzioni_menu.get('gender', ['male', 'female']))
+    in_corso = st.selectbox("Corso Frequentato", opzioni_menu.get('course', ['b.tech', 'b.sc', 'b.com']))
+    in_ore_studio = st.slider("Ore di Studio Giornaliere", 0.0, 12.0, 4.0, step=0.5)
+    in_presenza = st.slider("Frequenza Lezioni %", 0.0, 100.0, 80.0, step=1.0)
+    in_qualita_sonno = st.selectbox("Qualità del Sonno", opzioni_menu.get('sleep_quality', ['good', 'average', 'poor']))
+    in_ore_sonno = st.slider("Ore Sonno Notturne", 4.0, 12.0, 7.0, step=0.5)
+    in_metodo = st.selectbox("Metodo di Studio", opzioni_menu.get('study_method', ['self-study', 'group study']))
+    st.markdown('</div>', unsafe_allow_html=True)
+        
+    submit_sim = st.button("🚀 CALCOLA PREVISIONE", use_container_width=True)
+
+    if submit_sim:
+        dati_simulati = {
+            'age': in_eta, 'gender': in_genere, 'course': in_corso, 'study_hours': in_ore_studio,
+            'class_attendance': in_presenza, 'sleep_hours': in_ore_sonno, 'sleep_quality': in_qualita_sonno,
+            'study_method': in_metodo
+        }
+        if 'Carico_Totale_Ore' in X.columns:
+            dati_simulati['Carico_Totale_Ore'] = in_ore_studio + in_ore_sonno
+            
+        input_df = pd.DataFrame([dati_simulati])
+        
+        for col in input_df.columns:
+            if col in mappature_cat:
+                valore = str(input_df[col].iloc[0]).strip()
+                lista_cat = list(mappature_cat[col])
+                input_df[col] = lista_cat.index(valore) if valore in lista_cat else 0
+                
+        input_df = input_df.reindex(columns=X.columns, fill_value=0)
+        voto_predetto = modello_rf.predict(input_df)[0]
+        
+        st.markdown(f"""
+            <div style="background-color: #F1F5F9; padding: 15px; border-radius: 12px; margin-top:15px; border: 1px solid #CBD5E1; text-align: center;">
+                <p style="color: #5A6D88; font-size:13px; margin:0;">🎯 Punteggio Predetto</p>
+                <p style="color: #1E3A8A; font-size: 32px; font-weight: bold; margin: 5px 0 0 0;">{voto_predetto:.2f} / 100</p>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        if voto_predetto >= 70:
+            st.success("Rendimento Elevato: Ottima proiezione.")
+        elif voto_predetto >= 50:
+            st.warning("Rendimento Medio: Margini stabili.")
+        else:
+            st.error("Rendimento Critico: Rivedere la pianificazione oraria.")
+
+        st.markdown("<p class='section-title'>📊 Fattori Determinanti (Top 3)</p>", unsafe_allow_html=True)
+        importanze = modello_rf.feature_importances_
+        df_features = pd.DataFrame({'Fattore': X.columns, 'Importanza': importanze})
+        top_3 = df_features.sort_values(by='Importanza', ascending=True).head(3)
+        
+        fig_bar = px.bar(top_3, x='Importanza', y='Fattore', orientation='h', color='Importanza', color_continuous_scale='Viridis')
+        fig_bar.update_layout(margin=dict(l=10, r=10, t=10, b=10), xaxis_title="Peso sull'algoritmo", yaxis_title="")
+        st.plotly_chart(fig_bar, use_container_width=True, config={'displayModeBar': False})
+
+# ------------------------------------------
+# TAB 3: PERFORMANCE DEI MODELLI
+# ------------------------------------------
+with tab3:
+    st.markdown("<p class='section-title'>Performance dei Modelli Predittivi</p>", unsafe_allow_html=True)
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown("<p class='section-subtitle'>Modello Avanzato (Random Forest)</p>", unsafe_allow_html=True)
+        st.metric("Errore Medio RMSE", f"{rmse_rf:.4f}")
+    with col2:
+        st.markdown("<p class='section-subtitle'>Modello Base (Linear Regression)</p>", unsafe_allow_html=True)
+        st.metric("Errore Medio RMSE", f"{rmse_lr:.4f}")
+            
+    st.markdown("---")
+    st.info(f"Il modello Random Forest riduce l'errore di predizione di **{abs(rmse_lr - rmse_rf):.4f}** punti rispetto alla regressione lineare.")
+
+st.markdown("<br>", unsafe_allow_html=True)
+with st.expander("Ispeziona un'anteprima dei dati storici"):
+    st.dataframe(df_orig.head(10), use_container_width=True)
