@@ -4,11 +4,9 @@ if "auth" not in st.session_state: st.session_state["auth"] = False
 
 if not st.session_state["auth"]:
     with st.form("L"):
-        u = st.text_input("User")
-        p = st.text_input("Pass", type="password")
-        if st.form_submit_button("ACCEDI"):
-            if u == "admin" and p == "ia2026": st.session_state["auth"] = True; st.rerun()
-            else: st.error("Errato")
+        u, p = st.text_input("User"), st.text_input("Pass", type="password")
+        if st.form_submit_button("ACCEDI") and u == "admin" and p == "ia2026":
+            st.session_state["auth"] = True; st.rerun()
     st.stop()
 
 fl = "train_leggero.csv" if os.path.exists("train_leggero.csv") else "train.csv"
@@ -27,27 +25,26 @@ else:
     from sklearn.ensemble import RandomForestRegressor
     m_rf = RandomForestRegressor(n_estimators=10, max_depth=5, random_state=42, n_jobs=-1).fit(X, df_e.iloc[:,-1])
 
-try:
-    from sklearn.metrics import mean_squared_error
-    sc_rf = np.sqrt(mean_squared_error(df_e.iloc[:,-1], m_rf.predict(X)))
-except: sc_rf = 4.3120
-
-tab1, tab2, tab3 = st.tabs(["📊 EDA", "🔮 Simulatore", "📈 Performance"])
-
-with tab1:
-    st.metric("Righe", df.shape[0]); st.metric("Colonne", df.shape[1])
+t1, t2 = st.tabs(["📊 EDA", "🔮 Simulatore"])
+with t1:
+    st.metric("Dati storici caricati (Righe)", df.shape[0])
     st.plotly_chart(px.imshow(df_e.select_dtypes(include=[np.number]).corr(), text_auto='.2f', color_continuous_scale='Blugrn').update_layout(height=280), use_container_width=True)
     st.plotly_chart(px.histogram(df, x=df.columns[-1], color_discrete_sequence=['#FF6F61']).update_layout(height=280), use_container_width=True)
 
-with tab2:
-    st.subheader("Simulatore")
-    v_ag = st.number_input("Eta", 15, 90, 20)
-    v_ge = st.selectbox("Genere", mp.get('gender', ['male', 'female']))
-    v_co = st.selectbox("Corso", mp.get('course', ['b.tech', 'b.sc', 'b.com']))
-    v_me = st.selectbox("Metodo", mp.get('study_method', ['online videos', 'textbooks']))
-    v_ho = st.slider("Ore Studio", 0.0, 16.0, 4.0)
-    v_at = st.slider("Presenza %", 0.0, 100.0, 80.0)
-    v_it = st.selectbox("Internet", mp.get('internet_access', ['yes', 'no']))
-    v_di = st.selectbox("Difficolta", mp.get('exam_difficulty', ['medium', 'low', 'high']))
-    v_sl = st.slider("Ore Sonno", 3.0, 14.0, 7.0)
-    v_sq = st.selectbox("Qualita Sonno", mp.get('sleep_quality',
+with t2:
+    st.subheader("Simulatore Automatico")
+    m_in = {}
+    # IL TRUCCO GENERATIVO: Crea tutti gli input del dataset da solo in automatico!
+    for col in X.columns:
+        if col in mp: m_in[col] = st.selectbox(f"Seleziona {col.upper()}", mp[col])
+        elif df[col].nunique() <= 5: m_in[col] = st.slider(f"Valuta {col.upper()}", int(df[col].min()), int(df[col].max()), int(df[col].median()))
+        else: m_in[col] = st.number_input(f"Inserisci {col.upper()}", int(df[col].min()), int(df[col].max()), int(df[col].median()))
+        
+    if st.button("CALCOLA PREVISIONE VOTO", use_container_width=True):
+        in_df = pd.DataFrame([m_in]).reindex(columns=X.columns, fill_value=0)
+        for col in in_df.columns:
+            if col in mp:
+                ls = list(mp[col]); v_s = str(in_df[col].iloc[0]).strip()
+                in_df[col] = ls.index(v_s) if v_s in ls else 0
+        voto = m_rf.predict(in_df)[0]
+        st.success(f"🎯 Voto stimato dall'Intelligenza Artificiale: {voto:.2f} / 100")
