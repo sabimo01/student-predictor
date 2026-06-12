@@ -22,16 +22,19 @@ if 'page' not in st.session_state:
 # ==========================================
 st.markdown("""
     <style>
-        # /* Reset e Font */ .stApp { background-color: #FFFFFF; font-family: 'Helvetica Neue', sans-serif; }
-        # /* Nascondi Menu Streamlit */ #MainMenu, footer, header, div[data-testid="stHeader"] { visibility: hidden; display: none !important; }
+        .stApp { background-color: #FFFFFF; font-family: 'Helvetica Neue', sans-serif; }
+        #MainMenu, footer, header, div[data-testid="stHeader"] { visibility: hidden; display: none !important; }
         
-        # /* --- HEADER CON LOGO --- */ .header-container { background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 100%); padding: 20px; border-radius: 0 0 25px 25px; text-align: center; margin-bottom: 25px; } .logo-img { max-width: 150px; margin-bottom: 10px; background: white; padding: 5px; border-radius: 10px; } .header-title { color: white !important; font-size: 22px !important; font-weight: 700; margin: 0; }
+        .header-container { background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 100%); padding: 20px; border-radius: 0 0 25px 25px; text-align: center; margin-bottom: 25px; } 
+        .header-title { color: white !important; font-size: 22px !important; font-weight: 700; margin: 0; }
         
-        # /* --- NAVIGAZIONE A ICONE GIGANTI --- */ .nav-button-container { text-align: center; } .stButton > button { width: 80px !important; height: 80px !important; border-radius: 20px !important; background-color: #F8FAFC !important; color: #1E3A8A !important; font-size: 35px !important; border: 1px solid #E2E8F0 !important; box-shadow: 0 4px 6px rgba(0,0,0,0.05) !important; transition: all 0.3s; } .stButton > button:active { transform: scale(0.9); background-color: #2979FF !important; color: white !important; } .nav-hint { font-size: 11px !important; font-weight: 600; color: #5A6D88; margin-top: 8px; text-transform: uppercase; }
+        .nav-button-container { text-align: center; } 
+        .stButton > button { width: 80px !important; height: 80px !important; border-radius: 20px !important; background-color: #F8FAFC !important; color: #1E3A8A !important; font-size: 35px !important; border: 1px solid #E2E8F0 !important; box-shadow: 0 4px 6px rgba(0,0,0,0.05) !important; } 
+        .nav-hint { font-size: 11px !important; font-weight: 600; color: #5A6D88; margin-top: 8px; text-transform: uppercase; }
         
-        # /* --- TITOLI SEZIONI PICCOLI --- */ .section-title { font-size: 20px !important; font-weight: 700 !important; color: #1C2B4C; margin: 20px 0 10px 0 !important; } .section-subtitle { font-size: 13px !important; color: #5A6D88; margin-bottom: 15px !important; }
-        
-        # /* Card Metriche */ .stMetric { background-color: #F8FAFC; border-radius: 15px; border: 1px solid #E2E8F0; }
+        .section-title { font-size: 20px !important; font-weight: 700 !important; color: #1C2B4C; margin: 20px 0 10px 0 !important; } 
+        .section-subtitle { font-size: 13px !important; color: #5A6D88; margin-bottom: 15px !important; }
+        .stMetric { background-color: #F8FAFC; border-radius: 15px; border: 1px solid #E2E8F0; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -52,21 +55,21 @@ col1, col2, col3 = st.columns(3)
 
 with col1:
     st.markdown('<div class="nav-button-container">', unsafe_allow_html=True)
-    if st.button("📊", key="btn_eda", use_container_width=False):
+    if st.button("📊", key="btn_eda"):
         st.session_state.page = 'EDA'
     st.markdown('<p class="nav-hint">Dati ed<br>Analisi</p>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
 with col2:
     st.markdown('<div class="nav-button-container">', unsafe_allow_html=True)
-    if st.button("🔮", key="btn_sim", use_container_width=False):
+    if st.button("🔮", key="btn_sim"):
         st.session_state.page = 'SIM'
     st.markdown('<p class="nav-hint">Test<br>Previsione</p>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
 with col3:
     st.markdown('<div class="nav-button-container">', unsafe_allow_html=True)
-    if st.button("📈", key="btn_perf", use_container_width=False):
+    if st.button("📈", key="btn_perf"):
         st.session_state.page = 'PERF'
     st.markdown('<p class="nav-hint">Qualità<br>Modelli</p>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
@@ -74,13 +77,14 @@ with col3:
 st.markdown("---")
 
 # ==========================================
-# 5. CARICAMENTO DATI & MODELLI (Identico a prima)
+# 5. CARICAMENTO DATI & MODELLI
 # ==========================================
 @st.cache_data
 def load_data():
     path = "train_leggero.csv" if os.path.exists("train_leggero.csv") else "train.csv"
     df = pd.read_csv(path)
-    if 'id' in df.columns: df = df.drop(columns=['id'])
+    if 'id' in df.columns: 
+        df = df.drop(columns=['id'])
     df = df.drop_duplicates().fillna(0)
     col_testo = df.select_dtypes(include=['object']).columns
     opzioni = {col: df[col].unique() for col in col_testo}
@@ -124,20 +128,34 @@ if st.session_state.page == 'EDA':
 # --- PAGINA SIMULATORE ---
 elif st.session_state.page == 'SIM':
     st.markdown("<p class='section-title'>Simulatore Predittivo</p>", unsafe_allow_html=True)
-    with st.container():
-        in_eta = st.number_input("Età", 15, 90, 20)
-        in_genere = st.selectbox("Genere", opzioni_menu.get('gender', ['male', 'female']))
-        in_corso = st.selectbox("Corso", opzioni_menu.get('course', ['b.tech', 'b.sc']))
-        in_ore = st.slider("Ore Studio", 0.0, 12.0, 4.0)
-        in_presenza = st.slider("Presenza %", 0.0, 100.0, 80.0)
+    
+    in_eta = st.number_input("Età", 15, 90, 20)
+    in_genere = st.selectbox("Genere", opzioni_menu.get('gender', ['male', 'female']))
+    in_corso = st.selectbox("Corso", opzioni_menu.get('course', ['b.tech', 'b.sc']))
+    in_ore = st.slider("Ore Studio", 0.0, 12.0, 4.0)
+    in_presenza = st.slider("Presenza %", 0.0, 100.0, 80.0)
         
     if st.button("🚀 CALCOLA VOTO", use_container_width=True):
         input_df = pd.DataFrame([[in_eta, in_genere, in_corso, in_ore, in_presenza]], columns=X.columns[:5])
-        # Nota: Ho semplificato l'input per brevità, assicurati che input_df abbia tutte le colonne di X
         input_df = input_df.reindex(columns=X.columns, fill_value=0)
         
-        # Codifica al volo
+        # Codifica dei dati per i modelli (PARENTESI CHIUSA CORRETTAMENTE QUI)
         for col in input_df.columns:
             if col in mappature_cat:
                 lista = list(mappature_cat[col])
-                val = str(input_df
+                val = str(input_df[col].iloc[0])
+                input_df[col] = lista.index(val) if val in lista else 0
+        
+        voto = modello_rf.predict(input_df)[0]
+        st.markdown(f"""
+            <div style="background-color: #F1F5F9; padding: 20px; border-radius: 15px; text-align: center; border: 1px solid #CBD5E1; margin-top: 15px;">
+                <p style="color: #5A6D88; margin:0;">Voto Stimato</p>
+                <p style="color: #1E3A8A; font-size: 35px; font-weight: bold;">{voto:.2f} / 100</p>
+            </div>
+        """, unsafe_allow_html=True)
+
+# --- PAGINA PERFORMANCE ---
+elif st.session_state.page == 'PERF':
+    st.markdown("<p class='section-title'>Qualità dei Modelli</p>", unsafe_allow_html=True)
+    st.metric("Accuratezza RF (Errore)", f"{rmse_rf:.4f}")
+    st.metric("Accuratezza LR (Errore)", f"{rmse_lr:.4
