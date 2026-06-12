@@ -214,4 +214,9 @@ elif st.session_state.page == 'SIM':
         st.markdown(f"""
             <div style="background-color: #F1F5F9; padding: 20px; border-radius: 15px; text-align: center; border: 1px solid #CBD5E1; margin-top: 15px;">
                 <p style="color: #5A6D88; margin:0; font-size:13px;">Voto Finale Stimato</p>
-                <p style="color: #1E3A8A; font-size: 35px;
+                <p style="color: #1E3A8A; font-size: 35px; font-weight: bold; margin:5px 0 0 0;">{voto:.2f} / 100</p>
+            </div>
+        """, unsafe_allow_html=True)
+
+# --- PAGINA 3: PERFORMANCE ---
+elif st.session_state.page == 'PERF
