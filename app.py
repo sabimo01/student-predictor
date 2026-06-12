@@ -13,46 +13,47 @@ import os
 # 1. CONFIGURAZIONE UNICA DELLA PAGINA - MOBILE-FIRST PRO
 # ==========================================
 st.set_page_config(
-    page_title="Student Predictor AI - Piattaforma Pro",
+    page_title="Student Predictor AI",
     layout="wide",
     initial_sidebar_state="collapsed",
     page_icon="🎓"
 )
 
 # ==========================================
-# 2. CSS PERSONALIZZATO PER UN LOOK APPLICAZIONE REALE
+# 2. CSS PERSONALIZZATO PER RENDERLA IDENTICA AL MOCKUP
 # ==========================================
 st.markdown("""
     <style>
-        :root { --primary-bg: #FFFFFF; --text-dark: #1C2B4C; --text-light: #5A6D88; --accent: #2979FF; --success-dot: #4CAF50; }
+        :root { --primary-bg: #FFFFFF; --text-dark: #1C2B4C; --text-light: #5A6D88; --accent: #2979FF; }
         .stApp { background-color: var(--primary-bg); color: var(--text-dark); font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
-        #MainMenu, footer, header { visibility: hidden; }
         
-        /* Banner geometrico moderno in CSS puro */
-        .header-box { 
-            background: linear-gradient(135deg, #0F1A30 0%, #1C2B4C 50%, #2979FF 100%); 
-            padding: 30px 20px; 
-            border-radius: 0 0 25px 25px; 
-            color: white; 
-            margin-bottom: 25px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        /* Rimozione totale dei menu Streamlit nativi per non sporcare la grafica */
+        #MainMenu, footer, header, div[data-testid="stHeader"] { visibility: hidden; display: none !important; }
+        
+        /* TITOLI INTERNI RIMPICCIOLITI (Richiesta 3: non più enormi) */
+        .data-profiling-title { 
+            font-size: 20px !important; 
+            font-weight: bold !important; 
+            color: var(--text-dark); 
+            margin: 10px 0 5px 0 !important; 
+            padding-top: 5px;
+        } 
+        .section-subtitle {
+            font-size: 14px !important;
+            font-weight: bold !important;
+            color: var(--text-dark);
+            margin-bottom: 10px !important;
         }
-        .main-title { font-size: 26px !important; font-weight: bold !important; color: #FFFFFF !important; margin: 0 0 5px 0 !important; } 
-        .main-subtitle { font-size: 13px !important; color: rgba(255,255,255,0.75) !important; margin: 0 0 15px 0 !important; }
         
-        .st-cx { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 12px; background-color: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.1); } 
-        .user-dot { width: 8px; height: 8px; border-radius: 50%; background-color: var(--success-dot); }
-        
-        /* Struttura Card pulite */
-        .data-profiling-title { font-size: 18px; font-weight: bold; color: var(--text-dark); margin: 15px 0 10px 0; } 
-        .stMetric { background-color: #F8FAFC; border-radius: 16px; padding: 18px; border: 1px solid rgba(0,0,0,0.04); margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.01); } 
+        /* Card delle metriche pulite e arrotondate */
+        .stMetric { background-color: #F8FAFC; border-radius: 16px; padding: 15px; border: 1px solid rgba(0,0,0,0.04); margin-bottom: 10px; } 
         .form-card { background-color: #F8FAFC; border-radius: 16px; padding: 20px; border: 1px solid rgba(0,0,0,0.04); margin-bottom: 15px; }
         
-        /* Bottone grande stile iOS/Android */
-        .stButton > button { background-color: var(--accent) !important; color: white !important; font-size: 16px !important; font-weight: bold !important; border-radius: 22px !important; height: 50px !important; border: none !important; box-shadow: 0 4px 10px rgba(41,121,255,0.2) !important; margin-top: 10px; }
+        /* Bottone Calcola grande e responsive */
+        .stButton > button { background-color: var(--accent) !important; color: white !important; font-size: 16px !important; font-weight: bold !important; border-radius: 22px !important; height: 50px !important; border: none !important; margin-top: 10px; }
         
-        /* Sistemazione Tab */
-        div.stTabs > div > div > button { font-size: 14px !important; font-weight: 500; }
+        /* Stile menu di navigazione compatto */
+        .nav-label { font-size: 14px; font-weight: bold; color: var(--text-light); margin-bottom: 5px; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -61,14 +62,12 @@ st.markdown("""
 # ==========================================
 if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
-if "username_loggato" not in st.session_state:
-    st.session_state["username_loggato"] = ""
 
 if not st.session_state["authenticated"]:
     st.markdown("""
         <div style="text-align: center; margin-top: 50px; background-color: #FFFFFF; padding: 30px; border-radius: 18px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
             <h2 style="margin: 0; color: #1C2B4C; font-size: 26px;">🔒 Accesso Riservato</h2>
-            <p style="color: rgba(28,43,76,0.7); margin: 10px 0 0 0; font-size:14px;">Utilizza le credenziali autorizzate.</p>
+            <p style="color: rgba(28,43,76,0.7); margin: 10px 0 0 0; font-size:14px;">Inserisci le credenziali per sbloccare l'applicazione.</p>
         </div>
         <br>
     """, unsafe_allow_html=True)
@@ -81,7 +80,6 @@ if not st.session_state["authenticated"]:
         if submit:
             if username == "admin" and password == "ia2026":
                 st.session_state["authenticated"] = True
-                st.session_state["username_loggato"] = username  
                 st.success("Accesso eseguito!")
                 st.rerun()
             else:
@@ -89,18 +87,32 @@ if not st.session_state["authenticated"]:
     st.stop()
 
 # ==========================================
-# 4. INTERFACCIA HEADER GENERATA IN CSS
+# 4. INTERFACCIA MOCKUP VISIVO (POST-LOGIN)
 # ==========================================
-st.markdown("""
-    <div class="header-box">
-        <h1 class="main-title">Student Predictor AI</h1>
-        <p class="main-subtitle">Analisi e Modellazione Predittiva Carriere</p>
-        <div class="st-cx"><div class="user-dot"></div>Piattaforma Online • {user}</div>
-    </div>
-""".format(user=st.session_state["username_loggato"].upper()), unsafe_allow_html=True)
+# Carichiamo la testata perfetta con i pulsanti bianchi incorporati (Richiesta 1 e 2)
+if os.path.exists("header_mockup.png"):
+    st.image("header_mockup.png", use_container_width=True)
+else:
+    # Fallback di sicurezza se l'immagine non è ancora caricata su GitHub
+    st.markdown("""
+        <div style="width: 100%; padding: 20px; background: linear-gradient(135deg, #1C2B4C 0%, #2979FF 100%); border-radius: 0 0 20px 20px; color: white; text-align:center;">
+            <h3>🎓 Student Predictor AI</h3>
+            <p>Carica 'header_mockup.png' per attivare la grafica completa.</p>
+        </div>
+    """, unsafe_allow_html=True)
+
+# SISTEMA DI NAVIGAZIONE COMPATTO SOTTO LA TESTATA
+st.markdown('<p class="nav-label">🎛️ SELEZIONA SCHEDA VISUALIZZAZIONE:</p>', unsafe_allow_html=True)
+scelta_scheda = st.selectbox(
+    "Navigazione",
+    ["📊 Analisi Esplorativa (EDA)", "🔮 Simulatore Predittivo", "📈 Performance dei Modelli"],
+    label_visibility="collapsed"
+)
+
+st.markdown("---")
 
 # ==========================================
-# 5. PIPELINE DI PREPROCESSING & FEATURE ENGINEERING
+# 5. PIPELINE DI PREPROCESSING & MACHINE LEARNING
 # ==========================================
 @st.cache_data
 def load_and_preprocess_data():
@@ -158,61 +170,49 @@ def train_models(X_t, X_v, y_t, y_v):
 
 modello_rf, modello_lr, rmse_rf, rmse_lr = train_models(X_train, X_test, y_train, y_test)
 
+
 # ==========================================
-# 6. STRUTTURA TABS CON EMOJI NATIVI
+# 6. LOGICA DI VISUALIZZAZIONE DELLE SCHEDE
 # ==========================================
-tab1, tab2, tab3 = st.tabs(["📊 EDA", "🔮 Simulatore", "📈 Performance"])
 
 # ------------------------------------------
-# SCHEDA 1: EXPLORATORY DATA ANALYSIS (EDA)
+# CONTENUTO SCHEDA 1: EDA
 # ------------------------------------------
-with tab1:
+if scelta_scheda == "📊 Analisi Esplorativa (EDA)":
     st.markdown("<h2 class='data-profiling-title'>Analisi Esplorativa (EDA)</h2>", unsafe_allow_html=True)
+    st.markdown("<p class='section-subtitle'>Data Profiling</p>", unsafe_allow_html=True)
     
-    with st.container():
-        st.metric("Numero Totale Righe", df_originale.shape[0])
-        st.metric("Numero di Colonne", df_originale.shape[1])
-        st.write("**Tipi di Dati Rilevati:**")
-        st.dataframe(df_originale.dtypes.astype(str).to_frame(name="Tipo"), use_container_width=True)
+    st.metric("Numero Totale Righe", df_originale.shape[0])
+    st.metric("Numero di Colonne", df_originale.shape[1])
+    
+    st.write("**Tipi di Dati Rilevati:**")
+    st.dataframe(df_originale.dtypes.astype(str).to_frame(name="Tipo"), use_container_width=True)
         
     st.markdown("---")
-    
-    st.markdown("<p style='font-size:16px; font-weight:bold; color:#1C2B4C;'>📊 Heatmap Correlazioni</p>", unsafe_allow_html=True)
+    st.markdown("<p class='section-subtitle'>📊 Heatmap Correlazioni Interattiva</p>", unsafe_allow_html=True)
     corr_matrix = df_elaborato.select_dtypes(include=[np.number]).corr()
     
-    fig_heat = px.imshow(
-        corr_matrix, 
-        text_auto='.2f', 
-        color_continuous_scale='RdBu_r',
-        aspect="auto"
-    )
-    fig_heat.update_layout(
-        margin=dict(l=10, r=10, t=30, b=10),
-        coloraxis_colorbar_len=0.7
-    )
+    fig_heat = px.imshow(corr_matrix, text_auto='.2f', color_continuous_scale='RdBu_r', aspect="auto")
+    fig_heat.update_layout(margin=dict(l=10, r=10, t=10, b=10), coloraxis_colorbar_len=0.7)
     st.plotly_chart(fig_heat, use_container_width=True, config={'displayModeBar': False})
     
-    st.markdown("<p style='font-size:16px; font-weight:bold; color:#1C2B4C; margin-top:20px;'>📊 Distribuzione Voto Target</p>", unsafe_allow_html=True)
+    st.markdown("<p class='section-subtitle' style='margin-top:20px;'>📊 Distribuzione Voto Target</p>", unsafe_allow_html=True)
     fig_dist = px.histogram(df_originale, x=target_col, color_discrete_sequence=['#2979FF'])
-    fig_dist.update_layout(
-        margin=dict(l=10, r=10, t=30, b=10),
-        xaxis_title="Punteggio d'Esame", yaxis_title="Conteggio Studenti"
-    )
+    fig_dist.update_layout(margin=dict(l=10, r=10, t=10, b=10), xaxis_title="Punteggio d'Esame", yaxis_title="Conteggio")
     st.plotly_chart(fig_dist, use_container_width=True, config={'displayModeBar': False})
 
 # ------------------------------------------
-# SCHEDA 2: PREDICTOR DASHBOARD / SIMULATORE
+# CONTENUTO SCHEDA 2: SIMULATORE
 # ------------------------------------------
-with tab2:
+elif scelta_scheda == "🔮 Simulatore Predittivo":
     st.markdown("<h2 class='data-profiling-title'>Simulatore Predittivo Real-Time</h2>", unsafe_allow_html=True)
     
     st.markdown('<div class="form-card">', unsafe_allow_html=True)
-    st.markdown('<p style="font-size: 15px; font-weight: bold; color: #1C2B4C; margin-bottom: 15px;">📝 Input Form: Profilo Studente</p>', unsafe_allow_html=True)
+    st.markdown('<p class="section-subtitle">📝 Profilo Studente Ipotetico</p>', unsafe_allow_html=True)
     
     in_eta = st.number_input("Età Anagrafica", min_value=15, max_value=90, value=20, format="%d")
     in_genere = st.selectbox("Genere", opzioni_menu.get('gender', ['male', 'female']))
     in_corso = st.selectbox("Corso Frequentato", opzioni_menu.get('course', ['b.tech', 'b.sc', 'b.com']))
-    
     in_ore_studio = st.slider("Ore di Studio Giorni", 0.0, 12.0, 4.0, step=0.5)
     in_presenza = st.slider("Frequenza Lezioni %", 0.0, 100.0, 80.0, step=1.0)
     in_qualita_sonno = st.selectbox("Qualità del Sonno", opzioni_menu.get('sleep_quality', ['good', 'average', 'poor']))
@@ -220,7 +220,7 @@ with tab2:
     in_metodo = st.selectbox("Metodo di Studio", opzioni_menu.get('study_method', ['self-study', 'group study']))
     st.markdown('</div>', unsafe_allow_html=True)
         
-    submit_sim = st.button("🚀 CALCOLA PREVISIONE", use_container_width=True)
+    submit_sim = st.button("🚀 CALCOLA PREVISIONE FINALIZZATA", use_container_width=True)
 
     if submit_sim:
         dati_simulati = {
@@ -239,48 +239,36 @@ with tab2:
         input_user_df = input_user_df.reindex(columns=X.columns, fill_value=0)
         voto_predetto = modello_rf.predict(input_user_df)[0]
         
-        with st.container():
-            st.markdown("""
-                <div style="background-color: #F8FAFC; padding: 20px; border-radius: 14px; margin-top:20px; border: 1px solid rgba(0,0,0,0.04);">
-                    <p style="color: var(--text-light); font-size:14px; margin:0;">🎯 Verdetto Predittivo</p>
-                    <p style="color: var(--text-dark); font-size: 32px; font-weight: bold; margin: 5px 0 10px 0;">{pred:.2f} / 100</p>
-                </div>
-            """.format(pred=voto_predetto), unsafe_allow_html=True)
-            
-            if voto_predetto >= 70:
-                st.success("Rendimento Elevato: Ottima proiezione accademica.")
-            elif voto_predetto >= 50:
-                st.warning("Rendimento Medio: Margini di miglioramento stabili.")
-            else:
-                st.error("Rendimento Critico: Si consiglia di rivedere la pianificazione.")
-                
-        with st.container():
-            st.markdown("<p style='font-size:16px; font-weight:bold; color:#1C2B4C; margin-top:20px;'>📊 Fattori Determinanti (Top 3)</p>", unsafe_allow_html=True)
-            importanze = modello_rf.feature_importances_
-            df_features = pd.DataFrame({'Fattore': X.columns, 'Importanza': importanze})
-            top_3 = df_features.sort_values(by='Importanza', ascending=True).head(3)
-            
-            fig_bar = px.bar(top_3, x='Importanza', y='Fattore', orientation='h', color='Importanza', color_continuous_scale='Viridis')
-            fig_bar.update_layout(margin=dict(l=10, r=10, t=10, b=10), xaxis_title="Importanza", yaxis_title="")
-            st.plotly_chart(fig_bar, use_container_width=True, config={'displayModeBar': False})
+        st.markdown("""
+            <div style="background-color: #F8FAFC; padding: 20px; border-radius: 14px; margin-top:15px; border: 1px solid rgba(0,0,0,0.04);">
+                <p style="color: var(--text-light); font-size:13px; margin:0;">🎯 Verdetto Predittivo</p>
+                <p style="color: var(--text-dark); font-size: 30px; font-weight: bold; margin: 5px 0 0 0;">{pred:.2f} / 100</p>
+            </div>
+        """.format(pred=voto_predetto), unsafe_allow_html=True)
+        
+        if voto_predetto >= 70:
+            st.success("Rendimento Elevato: Ottima proiezione.")
+        elif voto_predetto >= 50:
+            st.warning("Rendimento Medio: Margini stabili.")
+        else:
+            st.error("Rendimento Critico: Si consiglia revisione del piano orario.")
 
 # ------------------------------------------
-# SCHEDA 3: PERFORMANCE MODELLI
+# CONTENUTO SCHEDA 3: PERFORMANCE
 # ------------------------------------------
-with tab3:
+elif scelta_scheda == "📈 Performance dei Modelli":
     st.markdown("<h2 class='data-profiling-title'>Performance dei Modelli</h2>", unsafe_allow_html=True)
     
-    with st.container():
-        st.markdown("<p style='font-size:16px; font-weight:bold; color:#1C2B4C;'>Approccio 1: Random Forest</p>", unsafe_allow_html=True)
-        st.metric("Errore RMSE", f"{rmse_rf:.4f}")
-        
-        st.markdown("<p style='font-size:16px; font-weight:bold; color:#1C2B4C; margin-top:20px;'>Approccio 2: Linear Regression</p>", unsafe_allow_html=True)
-        st.metric("Errore RMSE", f"{rmse_lr:.4f}")
+    st.markdown("<p class='section-subtitle'>Approccio 1: Random Forest</p>", unsafe_allow_html=True)
+    st.metric("Errore Medio RMSE", f"{rmse_rf:.4f}")
+    
+    st.markdown("<p class='section-subtitle' style='margin-top:15px;'>Approccio 2: Linear Regression</p>", unsafe_allow_html=True)
+    st.metric("Errore Medio RMSE", f"{rmse_lr:.4f}")
             
     st.markdown("---")
-    differenza_calcolata = abs(rmse_lr - rmse_rf)
-    st.info(f"Il modello Random Forest registra un errore inferiore di **{differenza_calcolata:.4f}** punti.")
+    st.info(f"Il modello Random Forest registra un errore inferiore di **{abs(rmse_lr - rmse_rf):.4f}** punti.")
 
-st.markdown("<br><br>", unsafe_allow_html=True)
+# Tabella storica sempre consultabile in fondo
+st.markdown("<br>", unsafe_allow_html=True)
 with st.expander("Ispeziona un'anteprima dei dati storici"):
     st.dataframe(df_originale.head(10), use_container_width=True)
