@@ -38,8 +38,3 @@ with t1:
     g1, g2 = st.columns(2)
     with g1: st.plotly_chart(px.imshow(df_e.select_dtypes(include=[np.number]).corr(), text_auto='.2f', color_continuous_scale='Blugrn').update_layout(height=300), use_container_width=True)
     with g2: st.plotly_chart(px.histogram(df, x=df.columns[-1], color_discrete_sequence=['#FF6F61']).update_layout(height=300), use_container_width=True)
-with t2:
-    st.subheader("Simulatore Real-Time")
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        v_ag = st.number_input("Età", 15, 90,
