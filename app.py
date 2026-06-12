@@ -19,7 +19,7 @@ st.set_page_config(
     page_icon="🎓"
 )
 
-# Inizializzazione stabile degli stati della sessione
+# Inizializzazione controllata e stabile degli stati
 if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
 if "username_loggato" not in st.session_state:
@@ -68,39 +68,4 @@ st.markdown("""
             color: white !important; 
             font-size: 15px !important; 
             font-weight: bold !important; 
-            border-radius: 12px !important; 
-            height: 46px !important; 
-            border: none !important; 
-            box-shadow: 0 4px 6px rgba(41,121,255,0.15) !important;
-        }
-    </style>
-""", unsafe_allow_html=True)
-
-# ==========================================
-# 3. BLOCCO DI AUTENTICAZIONE
-# ==========================================
-if not st.session_state["authenticated"]:
-    st.markdown("""
-        <div style="text-align: center; margin-top: 30px; background-color: #FFFFFF; padding: 25px; border-radius: 16px; border: 1px solid #E2E8F0;">
-            <h2 style="margin: 0; color: #1C2B4C; font-size: 22px;">🔒 Accesso Riservato</h2>
-            <p style="color: #5A6D88; margin: 8px 0 0 0; font-size:13px;">Inserisci le credenziali Admin del sistema.</p>
-        </div>
-        <br>
-    """, unsafe_allow_html=True)
-    
-    with st.form("Login Form"):
-        username = st.text_input("Username")
-        password = st.text_input("Password", type="password")
-        submit = st.form_submit_button("ACCEDI AL SISTEMA 🚀", use_container_width=True)
-        
-        if submit:
-            if username == "admin" and password == "ia2026":
-                st.session_state["authenticated"] = True
-                st.session_state["username_loggato"] = "ADMIN"
-                st.success("Accesso eseguito con successo!")
-                st.rerun()
-            else:
-                st.error("Credenziali non corrette. Riprova.")
-    st.stop()
-
-# =
+            border-
