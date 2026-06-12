@@ -19,26 +19,25 @@ st.set_page_config(
     page_icon="🎓"
 )
 
-# Gestione dello stato della navigazione mobile
+# Stato della pagina mobile stabile
 if 'page' not in st.session_state:
     st.session_state.page = 'EDA'
 
-# Funzione per convertire il logo in formato sicuro per l'HTML
+# Funzione per caricare il logo in modo sicuro senza rompere il layout
 def get_image_base64(path):
     with open(path, "rb") as image_file:
         return base64.b64encode(image_file.read()).decode()
 
 # ==========================================
-# 2. CSS AVANZATO PER IL LAYOUT MOBILE
+# 2. CSS INTEGRALE - BLINDATO PER SCHERMI MOBILE
 # ==========================================
 st.markdown("""
     <style>
+        /* Reset globale antistrecciamento mobile */
         .stApp { background-color: #FFFFFF; font-family: 'Helvetica Neue', sans-serif; }
-        
-        /* Nasconde i menu nativi di Streamlit */
         #MainMenu, footer, header, div[data-testid="stHeader"] { visibility: hidden; display: none !important; }
         
-        /* HEADER BOX PULITO CON GRADIENTE */
+        /* BANNER HEADER CON GRADIENTE */
         .header-container { 
             background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 100%); 
             padding: 20px; 
@@ -49,54 +48,57 @@ st.markdown("""
         } 
         .header-title { color: white !important; font-size: 20px !important; font-weight: 700; margin: 8px 0 0 0 !important; }
         
-        /* FORZA LE COLONNE A RIMANERE AFFIANCATE SU MOBILE */
+        /* CORREZIONE STRUTTURALE COLONNE: Calcolo esatto per non farle uscire dallo schermo */
         div[data-testid="stHorizontalBlock"] {
             display: flex !important;
             flex-direction: row !important;
             flex-wrap: nowrap !important;
-            justify-content: space-between !important;
-            gap: 10px !important;
+            width: 100% !important;
+            gap: 8px !important;
         }
-        div[data-testid="column"] {
-            min-width: auto !important;
-            flex: 1 !important;
+        div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {
+            width: 33.33% !important;
+            min-width: 0 !important;
+            flex: 1 1 33.33% !important;
+            padding: 0 !important;
             text-align: center !important;
         }
         
-        /* STILE ICONE DI NAVIGAZIONE GRANDI */
+        /* STILE BOTTONI NAVIGAZIONE RIGIDI DENTRO IL DISPLAY */
         .nav-button-container { text-align: center; width: 100%; } 
         .stButton > button { 
-            width: 75px !important; 
+            width: 100% !important; /* Prende lo spazio esatto del 33% assegnato */
+            max-width: 80px !important;
             height: 75px !important; 
             border-radius: 18px !important; 
             background-color: #F8FAFC !important; 
             color: #1E3A8A !important; 
-            font-size: 30px !important; 
+            font-size: 28px !important; 
             border: 1px solid #E2E8F0 !important; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.04) !important;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.03) !important;
             margin: 0 auto !important;
             display: block !important;
         } 
         .nav-hint { font-size: 11px !important; font-weight: 700; color: #5A6D88; margin-top: 6px; text-transform: uppercase; line-height: 1.2; }
         
-        /* TITOLI SEZIONI PICCOLI ED ELEGANTI (Richiesta 3) */
+        /* TITOLI SEZIONI PICCOLI (Richiesta 3 esaudita) */
         .section-title { font-size: 18px !important; font-weight: 700 !important; color: #1C2B4C; margin: 15px 0 5px 0 !important; } 
         .section-subtitle { font-size: 13px !important; color: #5A6D88; margin-bottom: 15px !important; }
         
-        /* Struttura Card */
+        /* Card per le metriche affiancate */
         .stMetric { background-color: #F8FAFC; border-radius: 14px; border: 1px solid #E2E8F0; padding: 12px; }
         .form-card { background-color: #F8FAFC; border-radius: 14px; padding: 18px; border: 1px solid #E2E8F0; margin-bottom: 12px; }
     </style>
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 3. GENERAZIONE HEADER INTEGRATO (LOGO + TITOLO)
+# 3. HEADER CON LOGO EMPATIA
 # ==========================================
 if os.path.exists("logo.png"):
     base64_logo = get_image_base64("logo.png")
     html_header = f"""
     <div class="header-container">
-        <img src="data:image/png;base64,{base64_logo}" style="max-width: 140px; background: white; padding: 6px; border-radius: 8px;">
+        <img src="data:image/png;base64,{base64_logo}" style="max-width: 130px; background: white; padding: 5px; border-radius: 8px;">
         <p class="header-title">Student Predictor AI</p>
     </div>
     """
@@ -109,7 +111,7 @@ else:
 st.markdown(html_header, unsafe_allow_html=True)
 
 # ==========================================
-# 4. NAVIGAZIONE ORIZZONTALE A ICONE
+# 4. NAVIGAZIONE ORIZZONTALE (PROPORZIONATA MOBILE)
 # ==========================================
 col1, col2, col3 = st.columns(3)
 
@@ -137,7 +139,7 @@ with col3:
 st.markdown("---")
 
 # ==========================================
-# 5. CODICE DI ELABORAZIONE DATI E MODELLI
+# 5. PIPELINE DATI & MACHINE LEARNING
 # ==========================================
 @st.cache_data
 def load_data():
@@ -156,8 +158,10 @@ def load_data():
     return df, df_enc, opzioni, mappature
 
 df_orig, df_enc, opzioni_menu, mappature_cat = load_data()
-X = df_enc.drop(columns=[df_enc.columns[-1]])
-y = df_enc[df_enc.columns[-1]]
+target_col = df_enc.columns[-1]
+
+X = df_enc.drop(columns=[target_col])
+y = df_enc[target_col]
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 @st.cache_resource
@@ -171,34 +175,34 @@ def train():
 modello_rf, modello_lr, rmse_rf, rmse_lr = train()
 
 # ==========================================
-# 6. LOGICA DI CAMBIO SCHEDA
+# 6. LOGICA DI CONTROLLO DELLE PAGINE MOBILE
 # ==========================================
 
-# --- SCHEDA 1: EDA ---
+# --- PAGINA 1: EDA ---
 if st.session_state.page == 'EDA':
     st.markdown("<p class='section-title'>Analisi Esplorativa (EDA)</p>", unsafe_allow_html=True)
-    st.markdown("<p class='section-subtitle'>Panoramica della base dati</p>", unsafe_allow_html=True)
+    st.markdown("<p class='section-subtitle'>Panoramica dei dati storici consolidati</p>", unsafe_allow_html=True)
     
     m1, m2 = st.columns(2)
     with m1:
-        st.metric("Righe totali", df_orig.shape[0])
+        st.metric("Righe", df_orig.shape[0])
     with m2:
-        st.metric("Colonne totali", df_orig.shape[1])
+        st.metric("Colonne", df_orig.shape[1])
     
     st.markdown("<p class='section-title'>📊 Grafico delle Correlazioni</p>", unsafe_allow_html=True)
     corr = df_enc.select_dtypes(include=[np.number]).corr()
-    st.plotly_chart(px.imshow(corr, text_auto='.2f', color_continuous_scale='Blugrn').update_layout(margin=dict(l=5,r=5,t=5,b=5)), use_container_width=True)
+    st.plotly_chart(px.imshow(corr, text_auto='.2f', color_continuous_scale='Blugrn').update_layout(margin=dict(l=5,r=5,t=5,b=5)), use_container_width=True, config={'displayModeBar': False})
 
-# --- SCHEDA 2: SIMULATORE ---
+# --- PAGINA 2: SIMULATORE COMPLETO ---
 elif st.session_state.page == 'SIM':
-    st.markdown("<p class='section-title'>Simulatore Predittivo</p>", unsafe_allow_html=True)
+    st.markdown("<p class='section-title'>Simulatore Predittivo Real-Time</p>", unsafe_allow_html=True)
     
     st.markdown('<div class="form-card">', unsafe_allow_html=True)
-    in_eta = st.number_input("Età Anagrafica", 15, 90, 20)
+    in_eta = st.number_input("Età Studente", 15, 90, 20)
     in_genere = st.selectbox("Genere", opzioni_menu.get('gender', ['male', 'female']))
-    in_corso = st.selectbox("Corso di Studi", opzioni_menu.get('course', ['b.tech', 'b.sc']))
+    in_corso = st.selectbox("Corso Frequentato", opzioni_menu.get('course', ['b.tech', 'b.sc', 'b.com']))
     in_ore = st.slider("Ore Studio Giornaliere", 0.0, 12.0, 4.0, step=0.5)
-    in_presenza = st.slider("Presenza alle Lezioni %", 0.0, 100.0, 80.0, step=1.0)
+    in_presenza = st.slider("Frequenza Lezioni %", 0.0, 100.0, 80.0, step=1.0)
     st.markdown('</div>', unsafe_allow_html=True)
         
     if st.button("🚀 CALCOLA PREVISIONE VOTO", use_container_width=True):
@@ -213,23 +217,16 @@ elif st.session_state.page == 'SIM':
         
         voto = modello_rf.predict(input_df)[0]
         st.markdown(f"""
-            <div style="background-color: #F1F5F9; padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #CBD5E1; margin-top: 15px;">
-                <p style="color: #5A6D88; margin:0; font-size:13px;">Esito Proiezione Voto</p>
-                <p style="color: #1E3A8A; font-size: 32px; font-weight: bold; margin:5px 0 0 0;">{voto:.2f} / 100</p>
+            <div style="background-color: #F1F5F9; padding: 20px; border-radius: 15px; text-align: center; border: 1px solid #CBD5E1; margin-top: 15px;">
+                <p style="color: #5A6D88; margin:0; font-size:13px;">Voto Finale Stimato</p>
+                <p style="color: #1E3A8A; font-size: 35px; font-weight: bold; margin:5px 0 0 0;">{voto:.2f} / 100</p>
             </div>
         """, unsafe_allow_html=True)
 
-# --- SCHEDA 3: PERFORMANCE ---
+# --- PAGINA 3: PERFORMANCE ---
 elif st.session_state.page == 'PERF':
     st.markdown("<p class='section-title'>Affidabilità Algoritmi</p>", unsafe_allow_html=True)
     
     p1, p2 = st.columns(2)
     with p1:
-        st.metric("Errore RF", f"{rmse_rf:.4f}")
-    with p2:
-        st.metric("Errore LR", f"{rmse_lr:.4f}")
-    st.info("I punteggi mostrano lo scarto medio del modello. Valori minori indicano stime più precise.")
-
-st.write("---")
-with st.expander("Ispeziona un'anteprima dei dati storici"):
-    st.dataframe(df_orig.head(5), use_container_width=True)
+        st.
